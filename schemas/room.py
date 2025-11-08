@@ -3,5 +3,9 @@ from typing import List
 
 
 class RoomSchemas(BaseModel):
-    posicao: List[int]
-    objetos: List[str]
+    x: int
+    y: int
+    entidade: List[str]
+
+    class Config:
+        from_attributes = True

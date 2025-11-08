@@ -5,5 +5,9 @@ from .room import RoomSchemas
 
 
 class EnviromentSchemas(BaseModel):
-    quantidade_salas: int
+    largura: int
+    altura:int
     salas: List[RoomSchemas]
+    
+    class Config:
+        from_attributes = True
