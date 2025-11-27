@@ -5,5 +5,7 @@ app = FastAPI()
 
 # importação das rotas
 from routes.environment import environment_router
+from routes.auth import auth_router
 
 app.include_router(environment_router)
+app.include_router(auth_router)
