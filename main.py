@@ -21,7 +21,7 @@ app = FastAPI()
 
 # cofiguração do cors para o frontend
 origins = [
-    'https://wumpus-verse-frontend.vercel.app/',
+    'https://wumpus-verse-frontend.vercel.app',
     'http://localhost:5173',
 ]
 
