@@ -1,8 +1,31 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.automap import automap_base
 
 from main import DB_CONFIG
 
-db = create_engine(f'postgresql://{DB_CONFIG["user"]}:{DB_CONFIG["password"]}@{DB_CONFIG["host"]}:{DB_CONFIG["port"]}/{DB_CONFIG["name"]}')
+DATABASE_URL = (
+    f'postgresql+psycopg2://{DB_CONFIG["user"]}:{DB_CONFIG["password"]}'
+    f'@{DB_CONFIG["host"]}:{DB_CONFIG["port"]}/{DB_CONFIG["name"]}'
+    '?sslmode=require'
+)
 
-Base = declarative_base()
+engine = create_engine(DATABASE_URL)
+
+Base = automap_base()
+Base.prepare(autoload_with=engine)
+
+User = Base.classes.usuario
+Entity = Base.classes.entidade
+Environment = Base.classes.ambiente
+Room = Base.classes.sala
+Object = Base.classes.objeto
+
+__all__ = [
+    'engine',
+    'Base',
+    'User',
+    'Entity',
+    'Environment',
+    'Room',
+    'Object',
+]
