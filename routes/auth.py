@@ -5,16 +5,41 @@ from firebase_admin import auth, exceptions
 import firebase_admin
 from datetime import datetime
 import requests
+from sqlalchemy.orm import Session
 
 from firebase import db
 from schemas import UserCreateSchemas, UserResponseSchemas, TokenSchemas, UserLoginSchemas, FirebaseUserSchemas
 from main import FIREBASE_API_KEY
+from dependencies import get_session
+from models import User
 
 auth_router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
+def create_token(uid:str, email:str, name:str):
+    # 3. Preparar resposta
+        user_response = UserResponseSchemas(
+            uid=uid,
+            email=email,
+            name=name,
+            created_at=datetime.now()
+        )
+
+        # 4. Gerar token customizado
+        custom_token = auth.create_custom_token(uid)
+
+        token_response = TokenSchemas(
+            access_token=custom_token.decode(
+                'utf-8') if isinstance(custom_token, bytes) else custom_token,
+            token_type="bearer",
+            user=user_response
+        )
+        
+        return token_response
+
+
 @auth_router.post("/register", response_model=TokenSchemas, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserCreateSchemas):
+async def register(user_data: UserCreateSchemas, session:Session=Depends(get_session)):
     """
     Registra um novo usuário no sistema
 
@@ -46,27 +71,13 @@ async def register(user_data: UserCreateSchemas):
             'role': 'user'
         }
 
-        # 🔥 COMENTE ESTA LINHA TEMPORARIAMENTE PARA TESTAR
         # db.collection('users').document(user.uid).set(user_profile)
+        new_user = User(email=user_data.email, usuario=user_data.name)
+        session.add(new_user)
+        session.commit()
         print(f"💾 (SIMULADO) Perfil salvo no Firestore: {user.uid}")
 
-        # 3. Preparar resposta
-        user_response = UserResponseSchemas(
-            uid=user.uid,
-            email=user_data.email,
-            name=user_data.name,
-            created_at=datetime.now()
-        )
-
-        # 4. Gerar token customizado
-        custom_token = auth.create_custom_token(user.uid)
-
-        token_response = TokenSchemas(
-            access_token=custom_token.decode(
-                'utf-8') if isinstance(custom_token, bytes) else custom_token,
-            token_type="bearer",
-            user=user_response
-        )
+        token_response = create_token(user.uid, user_data.email, user_data.name)
 
         print(f"🎉 Registro concluído para: {user_data.email}")
         return token_response
@@ -114,8 +125,10 @@ async def register(user_data: UserCreateSchemas):
         )
 
 
+# def verify_token()
+
 @auth_router.post("/login", response_model=TokenSchemas)
-async def login(login_data: UserLoginSchemas):
+async def login(login_data: UserLoginSchemas, session:Session=Depends(get_session)):
     try:
         print(f"🔐 Tentativa de login para: {login_data.email}")
         
@@ -169,11 +182,13 @@ async def login(login_data: UserLoginSchemas):
             print(f"⚠️  Firestore indisponível, usando dados básicos: {firestore_error}")
             user_name = login_data.email.split('@')[0]  # Nome padrão do email
         
+        user = session.query(User).filter(User.email == login_data.email).first()
+        
         # 3. Preparar resposta
         user_response = UserResponseSchemas(
             uid=user_id,
             email=login_data.email,
-            name=user_name,
+            name=user.usuario,
             created_at=datetime.now()  # Usar data atual temporariamente
         )
         
