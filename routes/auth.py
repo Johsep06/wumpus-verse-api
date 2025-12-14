@@ -70,6 +70,31 @@ def authenticate_firebase_user(password: str, email: str):
     return auth_result['localId']
 
 
+def delete_user_firebase(email=None, uid=None):
+    """
+    Deleta um usuário do Firebase Authentication.
+
+    Args:
+        email (str): Email do usuário a ser deletado
+        uid (str): UID do usuário a ser deletado
+
+    Retorna:
+        bool: True se deletado com sucesso, False caso contrário
+    """
+    try:
+        # Deleta o usuário pelo UID
+        firebase_auth.delete_user(uid)
+        print(f"✅ Usuário deletado com sucesso! UID: {uid}")
+        return True
+
+    except firebase_auth.UserNotFoundError:
+        print(f"❌ Usuário não encontrado (Email: {email}, UID: {uid})")
+        return False
+    except Exception as e:
+        print(f"❌ Erro ao deletar usuário: {e}")
+        return False
+
+
 @auth_router.post("/register", response_model=TokenSchemas, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreateSchemas, session: Session = Depends(get_session)):
     """
@@ -189,4 +214,44 @@ async def login(login_data: UserLoginSchemas, session: Session = Depends(get_ses
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro interno no servidor. Tente novamente."
+        )
+
+
+@auth_router.delete('/user')
+async def delete_user(
+    session: Session = Depends(get_session),
+    token: UserSchemas = Depends(check_token)
+    ):
+    try:
+        delete_user_firebase(token.email, token.uid)
+        user = session.query(User).filter(User.email == token.email).first()
+
+        email = user.email
+        name = user.usuario
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Usuário não encontrado"
+            )
+        
+        session.delete(user)
+        session.commit()
+        
+        return {
+            "message": "Usuário deletado com sucesso",
+            "email": email,
+            "name": name,
+            "timestamp": datetime.now().isoformat()
+        }
+
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as e:
+        session.rollback()
+        print(f"❌ Erro ao deletar usuário: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro interno ao deletar usuário: {str(e)}"
         )
