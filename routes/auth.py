@@ -6,7 +6,7 @@ import requests
 from sqlalchemy.orm import Session
 
 from firebase import firebase_auth
-from schemas import UserCreateSchemas, UserResponseSchemas, TokenSchemas, UserLoginSchemas, UserSchemas
+from schemas import UserCreateSchemas, TokenSchemas, UserLoginSchemas, UserSchemas
 from main import FIREBASE_API_KEY
 from dependencies import get_session, check_token
 from models import User
