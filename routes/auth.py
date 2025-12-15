@@ -183,8 +183,6 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
         )
 
 
-# def verify_token()
-
 @auth_router.post("/login", response_model=TokenSchemas)
 async def login(login_data: UserLoginSchemas, session: Session = Depends(get_session)):
     try:

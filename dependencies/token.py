@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status
 from firebase import firebase_auth, exceptions
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer
+from firebase_admin._auth_utils import InvalidIdTokenError
 
 from . import get_session
 from models import User
@@ -35,15 +36,10 @@ def check_token(token=Depends(oauth2_schema), session: Session = Depends(get_ses
             email=email, uid=user_id, name=user.usuario)
 
         return user_response
-    except exceptions.InvalidIdTokenError:
+    except InvalidIdTokenError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=401, 
             detail="Token inválido ou expirado"
-        )
-    except exceptions.ExpiredIdTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expirado"
         )
     except HTTPException:
         raise
