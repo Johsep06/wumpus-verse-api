@@ -14,17 +14,10 @@ from models import User
 auth_router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
-def create_token(uid: str, email: str, name: str):
-    # 4. Gerar token customizado
-    custom_token = firebase_auth.create_custom_token(uid)
-
-    if isinstance(custom_token, bytes):
-        access_token = custom_token.decode('utf-8')
-    else:
-        access_token = custom_token
+def format_token_response(email: str, name: str, id_token):
 
     token_response = TokenSchemas(
-        access_token=access_token,
+        access_token=id_token,
         token_type="bearer",
         user={
             'email': email,
@@ -67,7 +60,7 @@ def authenticate_firebase_user(password: str, email: str):
                 detail="Falha na autenticação"
             )
 
-    return auth_result['localId']
+    return auth_result['localId'], auth_result['idToken']
 
 
 def delete_user_firebase(email=None, uid=None):
@@ -134,7 +127,7 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
         session.commit()
         print(f"💾 (SIMULADO) Perfil salvo no Firestore: {user.uid}")
 
-        token_response = create_token(
+        token_response = format_token_response(
             user.uid, user_data.email, user_data.name)
 
         print(f"🎉 Registro concluído para: {user_data.email}")
@@ -188,7 +181,7 @@ async def login(login_data: UserLoginSchemas, session: Session = Depends(get_ses
     try:
         print(f"🔐 Tentativa de login para: {login_data.email}")
 
-        firebase_uid = authenticate_firebase_user(
+        firebase_uid, firebase_id_token = authenticate_firebase_user(
             login_data.password, login_data.email)
 
         print(f"✅ Login bem-sucedido para: {firebase_uid}")
@@ -196,8 +189,8 @@ async def login(login_data: UserLoginSchemas, session: Session = Depends(get_ses
         user = session.query(User).filter(
             User.email == login_data.email).first()
 
-        token_response = create_token(
-            uid=firebase_uid,
+        token_response = format_token_response(
+            id_token=firebase_id_token,
             email=login_data.email,
             name=user.usuario
         )
