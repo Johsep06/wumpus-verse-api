@@ -10,7 +10,7 @@ from models import User
 from schemas import UserSchemas
 
 
-oauth2_schema = OAuth2PasswordBearer(tokenUrl='auth/login')
+oauth2_schema = OAuth2PasswordBearer(tokenUrl='auth/login-form')
 
 
 def check_token(token=Depends(oauth2_schema), session: Session = Depends(get_session)) -> UserSchemas:
@@ -34,7 +34,11 @@ def check_token(token=Depends(oauth2_schema), session: Session = Depends(get_ses
             )
 
         user_response = UserSchemas(
-            email=email, uid=user_id, name=user.usuario)
+            email=email, 
+            uid=user_id, 
+            name=user.usuario,
+            id=user.id,
+        )
 
         return user_response
     except (InvalidIdTokenError, FirebaseError) as e:
