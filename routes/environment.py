@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from schemas import EnviromentSchemas, UserSchemas
 from dependencies import get_session, check_token
-from models import Environment, Room, RoomObject
+from models import Environment, Room
 
 environment_router = APIRouter(prefix='/environment', tags=['environment'])
 
