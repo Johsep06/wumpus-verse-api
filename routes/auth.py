@@ -4,6 +4,7 @@ from firebase_admin import exceptions
 from datetime import datetime
 import requests
 from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm
 
 from firebase import firebase_auth
 from schemas import UserCreateSchemas, TokenSchemas, UserLoginSchemas, UserSchemas
@@ -245,4 +246,35 @@ async def delete_user(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro interno ao deletar usuário: {str(e)}"
+        )
+
+@auth_router.post("/login-form", response_model=TokenSchemas)
+async def login_form(login_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+    try:
+        print(f"🔐 Tentativa de login para: {login_data.username}")
+
+        firebase_uid, firebase_id_token = authenticate_firebase_user(
+            login_data.password, login_data.username)
+
+        print(f"✅ Login bem-sucedido para: {firebase_uid}")
+
+        user = session.query(User).filter(
+            User.email == login_data.username).first()
+
+        token_response = format_token_response(
+            id_token=firebase_id_token,
+            email=login_data.username,
+            name=user.usuario
+        )
+
+        print(f"🎉 Login concluído para: {login_data.username}")
+        return token_response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erro inesperado no login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno no servidor. Tente novamente."
         )
