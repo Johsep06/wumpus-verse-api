@@ -6,11 +6,9 @@ from .number_entities import NumberEntitiesSchemas
 from .room import RoomSchemas
 
 
-class EnviromentsStatics(BaseModel):
+class EnviromentsStaticsSchemas(BaseModel):
     totalSalas: int
     salasAtivas: int
     salasInativas: int
     quantidadeEntidades: NumberEntitiesSchemas
     densidadeEntidades: EntityDensitySchemas
-    salas: List[RoomSchemas]
-    
