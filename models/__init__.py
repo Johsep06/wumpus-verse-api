@@ -15,17 +15,13 @@ Base = automap_base()
 Base.prepare(autoload_with=engine)
 
 User = Base.classes.usuario
-Entity = Base.classes.entidade
 Environment = Base.classes.ambiente
 Room = Base.classes.sala
-Object = Base.classes.objeto
 
 __all__ = [
     'engine',
     'Base',
     'User',
-    'Entity',
     'Environment',
     'Room',
-    'Object',
 ]
