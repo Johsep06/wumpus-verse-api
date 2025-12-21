@@ -1,12 +1,94 @@
 from fastapi import APIRouter, Depends
 from datetime import datetime
 from sqlalchemy.orm import Session
+from sqlalchemy import func, select
 
-from schemas import EnviromentSchemas, UserSchemas
+from schemas import EnvironmentSchemas, UserSchemas, EnviromentsStaticsSchemas, NumberEntitiesSchemas, EntityDensitySchemas, EnvironmentResponseSchemas
 from dependencies import get_session, check_token
-from models import Environment, Room
+from models import Environment, Room, RoomObject, User
 
 environment_router = APIRouter(prefix='/environment', tags=['environment'])
+
+
+def get_number_entities(session: Session, environment_id: int) -> NumberEntitiesSchemas:
+    number_of_wumpus = (
+        session.query(func.count(RoomObject.ambiente_id))
+        .filter(RoomObject.ambiente_id == environment_id)
+        .filter(RoomObject.objeto_id == 1)
+        .scalar() or 0
+    )
+    number_of_poco = (
+        session.query(func.count(RoomObject.ambiente_id))
+        .filter(RoomObject.ambiente_id == environment_id)
+        .filter(RoomObject.objeto_id == 2)
+        .scalar() or 0
+    )
+    number_of_gold = (
+        session.query(func.count(RoomObject.ambiente_id))
+        .filter(RoomObject.ambiente_id == environment_id)
+        .filter(RoomObject.objeto_id == 3)
+        .scalar() or 0
+    )
+
+    return NumberEntitiesSchemas(
+        wumpus=number_of_wumpus,
+        buracos=number_of_poco,
+        ouros=number_of_gold
+    )
+
+
+def get_entity_desity(rooms:int, number_entities:NumberEntitiesSchemas) -> EntityDensitySchemas:
+    wumpus_density = number_entities.wumpus / rooms
+    poco_density = number_entities.buracos / rooms
+    gold_density = number_entities.ouros / rooms
+    
+    return EntityDensitySchemas(
+        wumpus=f'{wumpus_density:.2f}%',
+        buracos=f'{poco_density:.2f}%',
+        ouros=f'{gold_density:.2f}%',
+    )
+
+
+def get_environments_statics(
+    session: Session,
+    environment_id: int,
+    environment_height: int,
+    environment_width: int,
+) -> EnviromentsStaticsSchemas:
+    environment_area = environment_height * environment_width
+
+    number_of_rooms = (
+        session.query(func.count(Room.ambiente_id))
+        .filter(Room.ambiente_id == environment_id)
+        .scalar() or 0
+    )
+    
+    number_of_entities = get_number_entities(session, environment_id)
+    
+    return EnviromentsStaticsSchemas(
+        totalSalas=environment_area,
+        salasAtivas=number_of_rooms,
+        salasInativas=environment_area - number_of_rooms,
+        quantidadeEntidades=number_of_entities,
+        densidadeEntidades=get_entity_desity(number_of_rooms, number_of_entities)
+    )
+
+
+def get_environment(session: Session, environment_id: int) -> EnvironmentResponseSchemas:
+    environment = session.query(Environment).filter(Environment.id == environment_id).first()
+    
+    return EnvironmentResponseSchemas(
+        id=environment.id,
+        nome=environment.nome,
+        largura=environment.largura,
+        altura=environment.altura,
+        estatisticas=get_environments_statics(
+            session, 
+            environment_id,
+            environment.altura,
+            environment.largura,
+        ),
+    )
 
 
 @environment_router.get('/')
@@ -20,7 +102,7 @@ async def home():
 
 @environment_router.post('/')
 async def new_environment(
-    environment_schemas: EnviromentSchemas, 
+    environment_schemas: EnvironmentSchemas,
     session: Session = Depends(get_session),
     user: UserSchemas = Depends(check_token)
 ):
@@ -90,3 +172,20 @@ async def new_environment(
     session.commit()
 
     return {'msg': 'ambiente criado com sucesso'}
+
+
+@environment_router.get('/user-environments')
+async def user_environments(
+    session: Session = Depends(get_session),
+    user_schemas: UserSchemas = Depends(check_token),
+):
+    user = session.query(User.id).filter(User.email == user_schemas.email)
+    
+    ids_enviroments_list = session.query(Environment.id).filter(Environment.usuario_id == user).all()
+    ids_enviroments = [id for (id,) in ids_enviroments_list]
+    environments = []
+    
+    for id_ in ids_enviroments:
+        environments.append(get_environment(session, id_))
+    
+    return environments
