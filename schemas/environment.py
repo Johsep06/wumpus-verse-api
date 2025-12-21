@@ -1,11 +1,12 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 from .room import RoomSchemas
 from .enviroments_statics import EnviromentsStaticsSchemas
 
 
 class EnvironmentSchemas(BaseModel):
+    id: Optional[int]
     nome: str
     largura: int
     altura: int
