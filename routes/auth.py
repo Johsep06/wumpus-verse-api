@@ -128,8 +128,12 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
         session.commit()
         print(f"💾 (SIMULADO) Perfil salvo no Firestore: {user.uid}")
 
+        _, id_token = authenticate_firebase_user(user_data.password, user_data.email)
         token_response = format_token_response(
-            user.uid, user_data.email, user_data.name)
+            id_token=id_token, 
+            email=user_data.email, 
+            name=user_data.name
+        )
 
         print(f"🎉 Registro concluído para: {user_data.email}")
         return token_response
