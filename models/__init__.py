@@ -17,6 +17,7 @@ Base.prepare(autoload_with=engine)
 User = Base.classes.usuario
 Environment = Base.classes.ambiente
 Room = Base.classes.sala
+RoomObject = Base.classes.sala_objeto
 
 __all__ = [
     'engine',
@@ -24,4 +25,5 @@ __all__ = [
     'User',
     'Environment',
     'Room',
+    'RoomObject',
 ]
