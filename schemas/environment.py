@@ -5,7 +5,7 @@ from .room import RoomSchemas
 from .enviroments_statics import EnviromentsStaticsSchemas
 
 
-class EnviromentSchemas(BaseModel):
+class EnvironmentSchemas(BaseModel):
     nome: str
     largura: int
     altura: int
