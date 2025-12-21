@@ -240,3 +240,10 @@ async def environment_by_id(environment_id:int, session:Session=Depends(get_sess
         estatisticas=environment_statics,
         salas=environment_rooms,
     )
+
+
+@environment_router.get('/mini-mapa')
+async def get_mini_mapa(environment_id:int, session:Session=Depends(get_session)) -> list[RoomSchemas]:
+    environment_rooms = get_rooms(session, environment_id)
+    
+    return environment_rooms
