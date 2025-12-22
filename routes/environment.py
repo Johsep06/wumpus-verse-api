@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import func, select
+from sqlalchemy import func, delete
 
 from schemas import EnvironmentSchemas, UserSchemas, EnviromentsStaticsSchemas, NumberEntitiesSchemas, EntityDensitySchemas, EnvironmentResponseSchemas, RoomSchemas
 from dependencies import get_session, check_token
@@ -137,7 +137,37 @@ async def home():
     return {"msg": "rota padrão do ambiente"}
 
 
-@environment_router.post('/')
+@environment_router.get('/user')
+async def environment_by_id(environment_id:int, session:Session=Depends(get_session)):
+    '''
+    Rota responsável por resgatar um ambuente pelo id
+    
+    Args:
+        environment_id: int (ID do ambiente para resgate)
+
+    Returns:
+        EnvironmentSchemas: padrão de dados para o ambiente
+    '''
+    environment = session.query(Environment).filter(Environment.id == environment_id).first()
+    environment_statics = get_environments_statics(
+        session, 
+        environment_id,
+        environment.altura,
+        environment.largura,
+    )
+    environment_rooms = get_rooms(session, environment_id)
+    
+    return EnvironmentSchemas(
+        id=environment_id,
+        nome=environment.nome,
+        largura=environment.largura,
+        altura=environment.altura,
+        estatisticas=environment_statics,
+        salas=environment_rooms,
+    )
+
+
+@environment_router.post('/user')
 async def new_environment(
     environment_schemas: EnvironmentSchemas,
     session: Session = Depends(get_session),
@@ -205,11 +235,53 @@ async def new_environment(
     return {'msg': 'ambiente criado com sucesso'}
 
 
-@environment_router.get('/user-environments')
+@environment_router.delete('/user')
+async def delete_environment(
+    environment_id:int,
+    user_schemas:UserSchemas = Depends(check_token),
+    session:Session=Depends(get_session),
+):
+    '''
+    rota para deletar um ambiente de um usuário
+    
+    Args:
+        environment_id: int
+
+    Returns:
+        dict: mensagem de sucesso
+    '''
+    
+    environment = session.query(Environment).filter(Environment.id == environment_id).first()
+    if environment is None:
+        raise HTTPException(status_code=404, detail="Ambiente não encontrado")
+    if environment.usuario_id != user_schemas.id:
+        raise HTTPException(status_code=403, detail="O usuário não tem permissão para realizar essa operação")
+    
+    session.execute(delete(RoomObject).where(RoomObject.ambiente_id == environment_id))
+    session.execute(delete(Room).where(Room.ambiente_id == environment_id))
+    session.delete(environment)
+    session.commit()
+    
+    return {
+        'msg':'ambiente deletado com sucesso'
+    }
+    
+
+@environment_router.get('/list-user')
 async def user_environments(
     session: Session = Depends(get_session),
     user_schemas: UserSchemas = Depends(check_token),
 ):
+    '''
+    Rota responável por listar todos os ambientes de um usuário logado
+    
+    
+    
+    Args:
+
+    Returns:
+        list: lista de ambientes
+    '''
     user = session.query(User.id).filter(User.email == user_schemas.email)
     
     ids_enviroments_list = session.query(Environment.id).filter(Environment.usuario_id == user).all()
@@ -221,28 +293,8 @@ async def user_environments(
     
     return environments
 
-@environment_router.get('/environment')
-async def environment_by_id(environment_id:int, session:Session=Depends(get_session)):
-    environment = session.query(Environment).filter(Environment.id == environment_id).first()
-    environment_statics = get_environments_statics(
-        session, 
-        environment_id,
-        environment.altura,
-        environment.largura,
-    )
-    environment_rooms = get_rooms(session, environment_id)
-    
-    return EnvironmentSchemas(
-        id=environment_id,
-        nome=environment.nome,
-        largura=environment.largura,
-        altura=environment.altura,
-        estatisticas=environment_statics,
-        salas=environment_rooms,
-    )
 
-
-@environment_router.get('/mini-mapa')
+@environment_router.get('/mini-map')
 async def get_mini_mapa(environment_id:int, session:Session=Depends(get_session)) -> list[RoomSchemas]:
     environment_rooms = get_rooms(session, environment_id)
     
