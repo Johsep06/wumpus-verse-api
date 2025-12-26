@@ -149,6 +149,10 @@ async def environment_by_id(environment_id:int, session:Session=Depends(get_sess
         EnvironmentSchemas: padrão de dados para o ambiente
     '''
     environment = session.query(Environment).filter(Environment.id == environment_id).first()
+
+    if environment is None:
+        raise HTTPException(status_code=404, detail='Ambiente não encontrado')    
+
     environment_statics = get_environments_statics(
         session, 
         environment_id,
@@ -269,6 +273,8 @@ async def delete_environment(
 
 @environment_router.get('/list-user')
 async def user_environments(
+    page: int = 1,
+    limit: int = 5,
     session: Session = Depends(get_session),
     user_schemas: UserSchemas = Depends(check_token),
 ):
@@ -282,9 +288,15 @@ async def user_environments(
     Returns:
         list: lista de ambientes
     '''
+    offset = (page - 1) * limit
+    
     user = session.query(User.id).filter(User.email == user_schemas.email)
     
-    ids_enviroments_list = session.query(Environment.id).filter(Environment.usuario_id == user).all()
+    ids_enviroments_list = session.query(Environment.id) \
+        .filter(Environment.usuario_id == user) \
+        .limit(limit) \
+        .offset(offset) \
+        .all()
     ids_enviroments = [id for (id,) in ids_enviroments_list]
     environments = []
     
@@ -296,6 +308,9 @@ async def user_environments(
 
 @environment_router.get('/mini-map')
 async def get_mini_mapa(environment_id:int, session:Session=Depends(get_session)) -> list[RoomSchemas]:
+    environment = session.query(Environment).filter(Environment.id == environment_id).first()
+    if environment is None:
+        raise HTTPException(status_code=404, detail='Ambiente não encontrado')
     environment_rooms = get_rooms(session, environment_id)
     
     return environment_rooms
