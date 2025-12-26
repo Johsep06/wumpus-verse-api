@@ -88,6 +88,7 @@ def get_environment_summary(session: Session, environment_id: int) -> Environmen
         nome=environment.nome,
         largura=environment.largura,
         altura=environment.altura,
+        data_criacao=environment.data_criacao ,
         estatisticas=get_environments_statics(
             session, 
             environment_id,
@@ -159,13 +160,11 @@ async def home(
     
     return environments
 
-    return {"msg": "rota padrão do ambiente"}
-
 
 @environment_router.get('/user')
 async def environment_by_id(environment_id:int, session:Session=Depends(get_session)):
     '''
-    Rota responsável por resgatar um ambuente pelo id
+    Rota responsável por resgatar um ambiente pelo id
     
     Args:
         environment_id: int (ID do ambiente para resgate)
@@ -191,6 +190,7 @@ async def environment_by_id(environment_id:int, session:Session=Depends(get_sess
         nome=environment.nome,
         largura=environment.largura,
         altura=environment.altura,
+        data_criacao=environment.data_criacao,
         estatisticas=environment_statics,
         salas=environment_rooms,
     )
