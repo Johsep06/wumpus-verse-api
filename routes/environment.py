@@ -44,9 +44,9 @@ def get_number_entities(session: Session, environment_id: int) -> NumberEntities
 
 
 def get_entity_desity(rooms:int, number_entities:NumberEntitiesSchemas) -> EntityDensitySchemas:
-    wumpus_density = number_entities.wumpus / rooms
-    poco_density = number_entities.buracos / rooms
-    gold_density = number_entities.ouros / rooms
+    wumpus_density = number_entities.wumpus / rooms if rooms != 0 else 0
+    poco_density = number_entities.buracos / rooms if rooms != 0 else 0
+    gold_density = number_entities.ouros / rooms if rooms != 0 else 0
     
     return EntityDensitySchemas(
         wumpus=f'{wumpus_density:.2f}%',
@@ -129,10 +129,35 @@ def get_rooms(session: Session, environment_id:int) -> list[RoomSchemas]:
     return room_list
 
 @environment_router.get('/')
-async def home():
+async def home(
+    page: int = 1,
+    limit: int = 5,
+    session: Session = Depends(get_session),
+):
     '''
-    Rota padrão do ambiente
+    Rota responsável por listar o resumo de todos os ambientes no banco de dados.
+
+    Args:
+        page: int = 1 (página a ser exibida).
+        limit: int = 5 (limite de itens por página).
+    
+    return:
+        list: lista de ambientes
     '''
+    
+    offset = (page - 1) * limit
+    
+    ids_enviroments_list = session.query(Environment.id) \
+        .limit(limit) \
+        .offset(offset) \
+        .all()
+    ids_enviroments = [id for (id,) in ids_enviroments_list]
+    environments = []
+    
+    for id_ in ids_enviroments:
+        environments.append(get_environment_summary(session, id_))
+    
+    return environments
 
     return {"msg": "rota padrão do ambiente"}
 
