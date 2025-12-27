@@ -264,6 +264,63 @@ async def new_environment(
     return {'msg': 'ambiente criado com sucesso'}
 
 
+@environment_router.put('/user')
+async def update_environment(
+    environment_id: int,
+    updated_environment: EnvironmentSchemas,
+    user_schemas: UserSchemas = Depends(check_token),
+    session: Session = Depends(get_session),
+):
+    environment = session.query(Environment).filter(Environment.id == environment_id).first()
+    if environment is None:
+        raise HTTPException(status_code=404, detail="Ambiente não encontrado")
+    if environment.usuario_id != user_schemas.id:
+        raise HTTPException(status_code=403, detail="O usuário não tem permissão para realizar essa operação")
+    
+    session.execute(delete(RoomObject).where(RoomObject.ambiente_id == environment_id))
+    session.execute(delete(Room).where(Room.ambiente_id == environment_id))
+
+    environment.nome = updated_environment.nome
+    environment.largura = updated_environment.largura
+    environment.altura = updated_environment.altura
+    
+    for sala in updated_environment.salas:
+        room = Room(
+            ambiente_id=environment_id,
+            posicao_x=sala.x,
+            posicao_y=sala.y,
+        )
+        session.add(room)
+
+        if sala.buraco:
+            room_object = RoomObject(
+                ambiente_id=environment_id,
+                posicao_x=sala.x,
+                posicao_y=sala.y,
+                objeto_id=OBJECTS_DATABASE_IDS['P']
+            )
+            session.add(room_object)
+        if sala.ouro:
+            room_object = RoomObject(
+                ambiente_id=environment_id,
+                posicao_x=sala.x,
+                posicao_y=sala.y,
+                objeto_id=OBJECTS_DATABASE_IDS['O']
+            )
+            session.add(room_object)
+        if sala.wumpus:
+            room_object = RoomObject(
+                ambiente_id=environment_id,
+                posicao_x=sala.x,
+                posicao_y=sala.y,
+                objeto_id=OBJECTS_DATABASE_IDS['W']
+            )
+            session.add(room_object)
+
+    session.commit()
+
+    return {'msg':'ambiente atualizado com sucesso'}
+
 @environment_router.delete('/user')
 async def delete_environment(
     environment_id:int,
@@ -339,3 +396,4 @@ async def get_mini_mapa(environment_id:int, session:Session=Depends(get_session)
     environment_rooms = get_rooms(session, environment_id)
     
     return environment_rooms
+
