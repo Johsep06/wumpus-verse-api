@@ -101,6 +101,11 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
     try:
         print(f"📝 Tentativa de registro para: {user_data.email}")
 
+        user = session.query(User).filter(User.usuario == user_data.name)
+        
+        if user is not None:
+            raise HTTPException(status_code=409, detail=f"Já existe um usuário com o nome {user_data.name}")
+        
         # 1. Criar usuário no Firebase Authentication
         user = firebase_auth.create_user(
             email=user_data.email,
@@ -262,8 +267,7 @@ async def login_form(login_data: OAuth2PasswordRequestForm = Depends(), session:
 
         print(f"✅ Login bem-sucedido para: {firebase_uid}")
 
-        user = session.query(User).filter(
-            User.email == login_data.username).first()
+        user = session.query(User).filter(User.email == login_data.username).first()
 
         token_response = format_token_response(
             id_token=firebase_id_token,
