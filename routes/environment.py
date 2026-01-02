@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import func, delete
+from sqlalchemy import func, delete, desc
 
 from schemas import EnvironmentSchemas, UserSchemas, EnviromentsStaticsSchemas, NumberEntitiesSchemas, EntityDensitySchemas, EnvironmentResponseSchemas, RoomSchemas
 from dependencies import get_session, check_token
@@ -149,6 +149,7 @@ async def home(
     offset = (page - 1) * limit
     
     ids_enviroments_list = session.query(Environment.id) \
+        .order_by(desc(Environment.data_criacao)) \
         .limit(limit) \
         .offset(offset) \
         .all()
@@ -376,6 +377,7 @@ async def user_environments(
     
     ids_enviroments_list = session.query(Environment.id) \
         .filter(Environment.usuario_id == user) \
+        .order_by(desc(Environment.data_criacao)) \
         .limit(limit) \
         .offset(offset) \
         .all()
