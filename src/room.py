@@ -1,11 +1,11 @@
 class Room:
-    def __init__(self, entity: list, *args, **kwargs):
+    def __init__(self, entity: list = None, *args, **kwargs):
         self.entities: list[str] = [] if entity is None else entity
         self.perceptions: list[str] = []
 
     def add_perception(self, perception: str):
         if perception not in self.perceptions:
-            perception.append(perception)
+            self.perceptions.append(perception)
 
     def hide_perception(self, perception: str):
         if perception in self.perceptions:

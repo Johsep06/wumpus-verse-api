@@ -1,14 +1,82 @@
+from schemas import RoomSchemas
+
 from .room import Room
 
 
 class Environment:
-    def __init__(self):
-        self.id = 0
-        self.largura = 0
-        self.altura = 0
-        self.salas: dict[tuple[int], Room] = {}
+    def __init__(self, id_: int, height: int, width:int, diagonal_movement: bool, rooms: list[RoomSchemas]):
+        self.id = id_
+        self.height = height
+        self.width = width
+        self.rooms: dict[tuple[int, int], Room] = {}
+        self.entities_positions = {'W': [], 'P': [], 'O': []}
+        self.directions = [(-1, 0), (1, 0), (0, 1), (0, -1)]
 
+        if diagonal_movement:
+            self.directions.append((-1, -1))
+            self.directions.append((-1, 1))
+            self.directions.append((1, -1))
+            self.directions.append((1, 1))
+
+        for room in rooms:
+            self.rooms[room.x, room.y] = Room()
+            if room.wumpus:
+                self.rooms[room.x, room.y].add_entity('W')
+                self.entities_positions['W'].append((room.x, room.y))
+
+            if room.buraco:
+                self.rooms[room.x, room.y].add_entity('P')
+                self.entities_positions['P'].append((room.x, room.y))
+                
+            if room.ouro:
+                self.rooms[room.x, room.y].add_entity('O')
+                self.entities_positions['O'].append((room.x, room.y))
+                self.rooms[room.x, room.y].add_perception('br')
+        
+        for position in self.entities_positions['W']:
+            self.set_perceptions('f', position)
+            
+        for position in self.entities_positions['P']:
+            self.set_perceptions('b', position)
+
+    
+    def display_entities(self) -> str:
+        screen = []
+        
+        for x in range(self.width):
+            line = []
+            for y in range(self.height):
+                if (x, y) not in self.rooms:
+                    line.append('#'*7)
+                else:
+                    line.append(f'{','.join(self.rooms[(x, y)].entities): ^7}')
+            screen.append('|'.join(line))
+        
+        return '\n'.join(screen)
+    
+    
+    def display_perceptions(self) -> str:
+        screen = []
+        
+        for x in range(self.width):
+            line = []
+            for y in range(self.height):
+                if (x, y) not in self.rooms:
+                    line.append('#######')
+                else:
+                    line.append(f'{','.join(self.rooms[(x, y)].perceptions): ^7}')
+            screen.append('|'.join(line))
+        
+        return '\n'.join(screen)
+        
     def reset(self):
-        self.largura = 0
-        self.altura = 0
-        self.salas = {}
+        self.rooms = {}
+
+    def set_perceptions(self, perception:str, position:tuple[int, int]):
+        if position not in self.rooms:
+            return
+        
+        for x, y in self.directions:
+            if (position[0] + x, position[1] + y) not in self.rooms:
+                continue
+            self.rooms[(position[0] + x, position[1] + y)].add_perception(perception)
