@@ -78,6 +78,13 @@ class Environment:
         
         return '\n'.join(screen)
         
+    
+    def display_agents(self) -> str:
+        display = ['##### Agentes #####']
+        
+        for agent in self.agents:
+            display.append(f'{agent} | x:{self.agents[agent][0]}, y:{self.agents[agent][1]}')
+            
     def reset(self):
         self.rooms = {}
 
