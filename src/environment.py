@@ -80,10 +80,14 @@ class Environment:
         
     
     def display_agents(self) -> str:
-        display = ['##### Agentes #####']
+        display = ['--- Agentes ---']
         
         for agent in self.agents:
             display.append(f'{agent} | x:{self.agents[agent][0]}, y:{self.agents[agent][1]}')
+        
+        display.append('---------------')
+        
+        return '\n'.join(display)
             
     def reset(self):
         self.rooms = {}
@@ -106,3 +110,21 @@ class Environment:
                 directions.append(key)
                 
         return directions
+    
+    def move_agent(self, agent_id:str, direction:str):
+        if direction not in self.directions:
+            return
+        
+        direction_tuple = self.directions[direction]
+        agent_position = self.agents[agent_id]
+        new_agent_position = (
+            agent_position[0] + direction_tuple[0], 
+            agent_position[1] + direction_tuple[1]
+        )
+        
+        if new_agent_position not in self.rooms:
+            return
+        
+        self.agents[agent_id] = new_agent_position
+        
+        return ','.join(self.rooms[new_agent_position].entities)
