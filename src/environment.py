@@ -4,19 +4,28 @@ from .room import Room
 
 
 class Environment:
-    def __init__(self, id_: int, height: int, width:int, diagonal_movement: bool, rooms: list[RoomSchemas]):
+    def __init__(
+        self, id_: int, 
+        height: int, 
+        width:int, 
+        diagonal_movement: bool, 
+        rooms: list[RoomSchemas], 
+        agents: dict[str, tuple[int, int]]
+):
+
         self.id = id_
         self.height = height
         self.width = width
         self.rooms: dict[tuple[int, int], Room] = {}
         self.entities_positions = {'W': [], 'P': [], 'O': []}
-        self.directions = [(-1, 0), (1, 0), (0, 1), (0, -1)]
-
+        self.directions = {'N':(-1, 0), 'S':(1, 0), 'L':(0, 1), 'O':(0, -1)}
+        self.agents = agents
+        
         if diagonal_movement:
-            self.directions.append((-1, -1))
-            self.directions.append((-1, 1))
-            self.directions.append((1, -1))
-            self.directions.append((1, 1))
+            self.directions.setdefault('NO', (-1, -1))
+            self.directions.setdefault('NE', (-1, 1))
+            self.directions.setdefault('SO', (1, -1))
+            self.directions.setdefault('SE', (1, 1))
 
         for room in rooms:
             self.rooms[room.x, room.y] = Room()
@@ -76,7 +85,17 @@ class Environment:
         if position not in self.rooms:
             return
         
-        for x, y in self.directions:
+        for x, y in list(self.directions.values()):
             if (position[0] + x, position[1] + y) not in self.rooms:
                 continue
             self.rooms[(position[0] + x, position[1] + y)].add_perception(perception)
+    
+    def get_directions(self, agent_id:str) -> list[str]:
+        pos_x, pos_y = self.agents[agent_id]
+        directions = []
+        
+        for key in self.directions:
+            if (pos_x + self.directions[key][0], pos_y + self.directions[key][1]) in self.rooms:
+                directions.append(key)
+                
+        return directions
