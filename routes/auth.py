@@ -103,7 +103,7 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
 
         user = session.query(User).filter(User.usuario == user_data.name)
         
-        if user is not None:
+        if user is None:
             raise HTTPException(status_code=409, detail=f"Já existe um usuário com o nome {user_data.name}")
         
         # 1. Criar usuário no Firebase Authentication
