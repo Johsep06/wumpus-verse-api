@@ -13,6 +13,7 @@ from .enviroments_statics import EnviromentsStaticsSchemas
 from .number_entities import NumberEntitiesSchemas
 from .entity_density import EntityDensitySchemas
 from .environment_response import EnvironmentResponseSchemas
+from .turn import TurnSchemas
 
 __all__ = [
     'EnvironmentSchemas',
@@ -30,4 +31,5 @@ __all__ = [
     'NumberEntitiesSchemas',
     'EntityDensitySchemas',
     'EnvironmentResponseSchemas',
+    'TurnSchemas',
 ]
