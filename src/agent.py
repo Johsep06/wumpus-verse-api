@@ -10,6 +10,8 @@ class Agent(ABC):
         self.__status = ''
         self.pts = 0
         self.position = position
+        self.start_position = position
+        self.gold = 0
         
     @property
     def status(self) -> str:
@@ -19,10 +21,13 @@ class Agent(ABC):
     def status(self, status: str):
         self.__status = status
 
-        for value in ['W', 'P', 'V']: 
+        for value in ['W', 'P']: 
             if value in status:
                 self.game_over = True
-            
+        
+        if (self.position == self.start_position) and (self.gold > 0):
+            self.game_over = True
+            self.__status = 'V'
 
     def __str__(self):
         return f'Agent(tag={self.tag}, type:{self.type}, pts={self.pts}, game_over={self.game_over})'

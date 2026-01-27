@@ -7,15 +7,11 @@ from .agent import Agent
 class Environment:
     def __init__(
         self, id_: int,
-        height: int,
-        width: int,
         diagonal_movement: bool,
         rooms: list[RoomSchemas],
     ):
 
         self.id = id_
-        self.height = height
-        self.width = width
         self.rooms: dict[tuple[int, int], Room] = {}
         self.entities_positions = {'W': [], 'P': [], 'O': []}
         self.directions = {'N': (-1, 0), 'S': (1, 0),
@@ -49,6 +45,10 @@ class Environment:
 
         for position in self.entities_positions['P']:
             self.set_perceptions('b', position)
+
+    def set_data_for_display(self, height: int, width: int,):
+        self.height = height
+        self.width = width
 
     def display_entities(self) -> str:
         screen = []
@@ -150,11 +150,16 @@ class Environment:
         position = agent.position
         result = None
 
-        if action in self.directions:
+        if action == 'x':
+            if 'O' in self.rooms[agent.position].entities:
+                self.rooms[agent.position].hide_entity('O')
+                self.rooms[agent.position].hide_perception('br')
+                result = 'O'
+        elif action in self.directions:
             result = self.move_agent(agent, action)
 
         if result is None:
-            return
+            return ''
 
         # self.step_histor.append(TurnSchemas(
         #     agente=agent.tag,
@@ -181,6 +186,8 @@ class Environment:
                 position_data = self.get_agent_position_data(agent)
                 choice = agent.execute(position_data)
                 agent_status = self.agent_action(agent, choice)
+                if agent_status == 'O':
+                    agent.gold += 1
                 print(agent_status)
                 agent.status = agent_status
                 agent.update_pts()
@@ -194,7 +201,7 @@ class Environment:
                 ))
                 if agent.game_over:
                     self.agent_queue.remove(agent)
-                
+                print(agent.position, agent.game_over, agent.gold)
             if self.agent_queue == []: break
         
         return step_histor

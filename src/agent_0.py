@@ -8,5 +8,7 @@ class Agent0(Agent):
 
     def execute(self, data_position: dict):
         choice = random.choice(data_position['directions'])
+        if 'br' in data_position['perception']:
+            return 'x'
 
         return choice
