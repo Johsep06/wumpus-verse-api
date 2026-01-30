@@ -347,8 +347,6 @@ async def delete_environment(
     if environment.usuario_id != user_schemas.id:
         raise HTTPException(status_code=403, detail="O usuário não tem permissão para realizar essa operação")
     
-    session.execute(delete(RoomObject).where(RoomObject.ambiente_id == environment_id))
-    session.execute(delete(RoomDb).where(RoomDb.ambiente_id == environment_id))
     session.delete(environment)
     session.commit()
     
