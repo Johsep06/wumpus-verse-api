@@ -19,30 +19,11 @@ OBJECTS_DATABASE_IDS = {
 }
 
 
-def get_number_entities(session: Session, environment_id: int) -> NumberEntitiesSchemas:
-    number_of_wumpus = (
-        session.query(func.count(RoomObject.ambiente_id))
-        .filter(RoomObject.ambiente_id == environment_id)
-        .filter(RoomObject.objeto_id == 1)
-        .scalar() or 0
-    )
-    number_of_poco = (
-        session.query(func.count(RoomObject.ambiente_id))
-        .filter(RoomObject.ambiente_id == environment_id)
-        .filter(RoomObject.objeto_id == 2)
-        .scalar() or 0
-    )
-    number_of_gold = (
-        session.query(func.count(RoomObject.ambiente_id))
-        .filter(RoomObject.ambiente_id == environment_id)
-        .filter(RoomObject.objeto_id == 3)
-        .scalar() or 0
-    )
-
+def get_number_entities(environment: EnvironmentDb) -> NumberEntitiesSchemas:
     return NumberEntitiesSchemas(
-        wumpus=number_of_wumpus,
-        buracos=number_of_poco,
-        ouros=number_of_gold
+        wumpus=environment.wumpus,
+        buracos=environment.poco,
+        ouros=environment.ouro
     )
 
 
@@ -59,20 +40,12 @@ def get_entity_desity(rooms:int, number_entities:NumberEntitiesSchemas) -> Entit
 
 
 def get_environments_statics(
-    session: Session,
-    environment_id: int,
-    environment_height: int,
-    environment_width: int,
+    environment: EnvironmentDb,
 ) -> EnviromentsStaticsSchemas:
-    environment_area = environment_height * environment_width
+    environment_area = environment.altura * environment.largura
 
-    number_of_rooms = (
-        session.query(func.count(RoomDb.ambiente_id))
-        .filter(RoomDb.ambiente_id == environment_id)
-        .scalar() or 0
-    )
-    
-    number_of_entities = get_number_entities(session, environment_id)
+    number_of_rooms = environment.salas_ativas
+    number_of_entities = get_number_entities(environment)
     
     return EnviromentsStaticsSchemas(
         totalSalas=environment_area,
@@ -93,10 +66,7 @@ def get_environment_summary(session: Session, environment_id: int) -> Environmen
         altura=environment.altura,
         data_criacao=environment.data_criacao ,
         estatisticas=get_environments_statics(
-            session, 
-            environment_id,
-            environment.altura,
-            environment.largura,
+            environment,
         ),
     )
 
@@ -182,10 +152,7 @@ async def environment_by_id(environment_id:int, session:Session=Depends(get_sess
         raise HTTPException(status_code=404, detail='Ambiente não encontrado')    
 
     environment_statics = get_environments_statics(
-        session, 
-        environment_id,
-        environment.altura,
-        environment.largura,
+        environment,
     )
     environment_rooms = get_rooms(session, environment_id)
     
