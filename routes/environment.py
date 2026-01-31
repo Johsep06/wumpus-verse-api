@@ -56,9 +56,7 @@ def get_environments_statics(
     )
 
 
-def get_environment_summary(session: Session, environment_id: int) -> EnvironmentResponseSchemas:
-    environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == environment_id).first()
-    
+def get_environment_summary(environment:EnvironmentDb) -> EnvironmentResponseSchemas:
     return EnvironmentResponseSchemas(
         id=environment.id,
         nome=environment.nome,
@@ -130,7 +128,8 @@ async def home(
     environments = []
     
     for id_ in ids_enviroments:
-        environments.append(get_environment_summary(session, id_))
+        environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == id_).first()
+        environments.append(get_environment_summary(environment))
     
     return environments
 
@@ -353,7 +352,8 @@ async def user_environments(
     environments = []
     
     for id_ in ids_enviroments:
-        environments.append(get_environment_summary(session, id_))
+        environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == id_).first()
+        environments.append(get_environment_summary(environment))
     
     return environments
 
