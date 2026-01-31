@@ -27,11 +27,11 @@ def get_number_entities(environment: EnvironmentDb) -> NumberEntitiesSchemas:
     )
 
 
-def get_entity_desity(rooms:int, number_entities:NumberEntitiesSchemas) -> EntityDensitySchemas:
+def get_entity_desity(rooms: int, number_entities: NumberEntitiesSchemas) -> EntityDensitySchemas:
     wumpus_density = number_entities.wumpus / rooms if rooms != 0 else 0
     poco_density = number_entities.buracos / rooms if rooms != 0 else 0
     gold_density = number_entities.ouros / rooms if rooms != 0 else 0
-    
+
     return EntityDensitySchemas(
         wumpus=f'{wumpus_density:.2f}%',
         buracos=f'{poco_density:.2f}%',
@@ -46,7 +46,7 @@ def get_environments_statics(
 
     number_of_rooms = environment.salas_ativas
     number_of_entities = get_number_entities(environment)
-    
+
     return EnviromentsStaticsSchemas(
         totalSalas=environment_area,
         salasAtivas=number_of_rooms,
@@ -56,35 +56,34 @@ def get_environments_statics(
     )
 
 
-def get_environment_summary(environment:EnvironmentDb) -> EnvironmentResponseSchemas:
+def get_environment_summary(environment: EnvironmentDb) -> EnvironmentResponseSchemas:
     return EnvironmentResponseSchemas(
         id=environment.id,
         nome=environment.nome,
         largura=environment.largura,
         altura=environment.altura,
-        data_criacao=environment.data_criacao ,
-        estatisticas=get_environments_statics(
-            environment,
-        ),
+        data_criacao=environment.data_criacao,
+        estatisticas=get_environments_statics(environment)
     )
 
 
-def get_entities_in_environment(entities_coordinates:tuple[int, int], entity_symbol:str) -> list[tuple[int, int]]:
+def get_entities_in_environment(entities_coordinates: tuple[int, int], entity_symbol: str) -> list[tuple[int, int]]:
     coordinates = list(
         filter(
             lambda c: c[2] == OBJECTS_DATABASE_IDS.get(entity_symbol),
-            entities_coordinates)
+            entities_coordinates
         )
+    )
     coordinates = list(map(lambda c: (c.posicao_x, c.posicao_y), coordinates))
-    
+
     return coordinates
 
 
-def get_rooms(entities:tuple[int, int, int], rooms:RoomDb) -> list[RoomSchemas]:
+def get_rooms(entities: tuple[int, int, int], rooms: RoomDb) -> list[RoomSchemas]:
     wumpus_coordinates = get_entities_in_environment(entities, 'W')
     hole_coordinates = get_entities_in_environment(entities, 'P')
     gold_coordinates = get_entities_in_environment(entities, 'O')
-    
+
     room_list = []
     for room in rooms:
         room_list.append(
@@ -96,8 +95,9 @@ def get_rooms(entities:tuple[int, int, int], rooms:RoomDb) -> list[RoomSchemas]:
                 ouro=(room.posicao_x, room.posicao_y) in gold_coordinates,
             )
         )
-    
+
     return room_list
+
 
 @environment_router.get('/')
 async def home(
@@ -111,13 +111,13 @@ async def home(
     Args:
         page: int = 1 (página a ser exibida).
         limit: int = 5 (limite de itens por página).
-    
+
     return:
         list: lista de ambientes
     '''
-    
+
     offset = (page - 1) * limit
-    
+
     ids_enviroments_list = session.query(EnvironmentDb.id) \
         .order_by(desc(EnvironmentDb.data_criacao)) \
         .limit(limit) \
@@ -125,19 +125,19 @@ async def home(
         .all()
     ids_enviroments = [id for (id,) in ids_enviroments_list]
     environments = []
-    
+
     for id_ in ids_enviroments:
         environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == id_).first()
         environments.append(get_environment_summary(environment))
-    
+
     return environments
 
 
 @environment_router.get('/user')
-async def environment_by_id(environment_id:int, session:Session=Depends(get_session)):
+async def environment_by_id(environment_id: int, session: Session = Depends(get_session)):
     '''
     Rota responsável por resgatar um ambiente pelo id
-    
+
     Args:
         environment_id: int (ID do ambiente para resgate)
 
@@ -147,7 +147,7 @@ async def environment_by_id(environment_id:int, session:Session=Depends(get_sess
     environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == environment_id).first()
 
     if environment is None:
-        raise HTTPException(status_code=404, detail='Ambiente não encontrado')    
+        raise HTTPException(status_code=404, detail='Ambiente não encontrado')
 
     environment_statics = get_environments_statics(
         environment,
@@ -157,7 +157,7 @@ async def environment_by_id(environment_id:int, session:Session=Depends(get_sess
         .all()
     rooms = session.query(RoomDb).filter(RoomDb.ambiente_id == environment_id).all()
     environment_rooms = get_rooms(entities, rooms)
-    
+
     return EnvironmentSchemas(
         id=environment_id,
         nome=environment.nome,
@@ -249,14 +249,14 @@ async def update_environment(
         raise HTTPException(status_code=404, detail="Ambiente não encontrado")
     if environment.usuario_id != user_schemas.id:
         raise HTTPException(status_code=403, detail="O usuário não tem permissão para realizar essa operação")
-    
+
     session.execute(delete(RoomObject).where(RoomObject.ambiente_id == environment_id))
     session.execute(delete(RoomDb).where(RoomDb.ambiente_id == environment_id))
 
     environment.nome = updated_environment.nome
     environment.largura = updated_environment.largura
     environment.altura = updated_environment.altura
-    
+
     for sala in updated_environment.salas:
         room = RoomDb(
             ambiente_id=environment_id,
@@ -292,37 +292,36 @@ async def update_environment(
 
     session.commit()
 
-    return {'msg':'ambiente atualizado com sucesso'}
+    return {'msg': 'ambiente atualizado com sucesso'}
+
 
 @environment_router.delete('/user')
 async def delete_environment(
-    environment_id:int,
-    user_schemas:UserSchemas = Depends(check_token),
-    session:Session=Depends(get_session),
+    environment_id: int,
+    user_schemas: UserSchemas = Depends(check_token),
+    session: Session = Depends(get_session),
 ):
     '''
     rota para deletar um ambiente de um usuário
-    
+
     Args:
         environment_id: int
 
     Returns:
         dict: mensagem de sucesso
     '''
-    
+
     environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == environment_id).first()
     if environment is None:
         raise HTTPException(status_code=404, detail="Ambiente não encontrado")
     if environment.usuario_id != user_schemas.id:
         raise HTTPException(status_code=403, detail="O usuário não tem permissão para realizar essa operação")
-    
+
     session.delete(environment)
     session.commit()
-    
-    return {
-        'msg':'ambiente deletado com sucesso'
-    }
-    
+
+    return {'msg': 'ambiente deletado com sucesso'}
+
 
 @environment_router.get('/list-user')
 async def user_environments(
@@ -333,18 +332,14 @@ async def user_environments(
 ):
     '''
     Rota responável por listar todos os ambientes de um usuário logado
-    
-    
-    
+
     Args:
 
     Returns:
         list: lista de ambientes
     '''
     offset = (page - 1) * limit
-    
-    # user = session.query(User.id).filter(User.email == user_schemas.email)
-    
+
     ids_enviroments_list = session.query(EnvironmentDb.id) \
         .filter(EnvironmentDb.usuario_id == user_schemas.id) \
         .order_by(desc(EnvironmentDb.data_criacao)) \
@@ -353,16 +348,16 @@ async def user_environments(
         .all()
     ids_enviroments = [id for (id,) in ids_enviroments_list]
     environments = []
-    
+
     for id_ in ids_enviroments:
         environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == id_).first()
         environments.append(get_environment_summary(environment))
-    
+
     return environments
 
 
 @environment_router.get('/mini-map')
-async def get_mini_mapa(environment_id:int, session:Session=Depends(get_session)) -> list[RoomSchemas]:
+async def get_mini_mapa(environment_id: int, session: Session = Depends(get_session)) -> list[RoomSchemas]:
     environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == environment_id).first()
     if environment is None:
         raise HTTPException(status_code=404, detail='Ambiente não encontrado')
@@ -372,13 +367,14 @@ async def get_mini_mapa(environment_id:int, session:Session=Depends(get_session)
         .all()
     rooms = session.query(RoomDb).filter(RoomDb.ambiente_id == environment_id).all()
     environment_rooms = get_rooms(entities, rooms)
-    
+
     return environment_rooms
+
 
 @environment_router.post('/execution')
 async def execution(
-    environment_id:int, diagonal_movement:bool, 
-    agents_data:list[AgentDataSchemas], session:Session=Depends(get_session)
+    environment_id: int, diagonal_movement: bool,
+    agents_data: list[AgentDataSchemas], session: Session = Depends(get_session)
 ) -> list[TurnSchemas]:
     entities = session.query(RoomObject.posicao_x, RoomObject.posicao_y, RoomObject.objeto_id) \
         .filter(RoomObject.ambiente_id == environment_id) \
@@ -390,16 +386,16 @@ async def execution(
         diagonal_movement=diagonal_movement,
         rooms=rooms
     )
-    
+
     for data in agents_data:
-        agent:Agent = None
+        agent: Agent = None
 
         if data.type == 0:
             agent = Agent0(str(data.id), (data.position_x, data.position_y))
 
         #! lembrar de colocar uma verificação caso não haja agente
         enviroment.add_agent(agent)
-    
+
     step_histor = enviroment.execution()
-    
-    return step_histor    
+
+    return step_histor
