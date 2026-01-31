@@ -69,22 +69,21 @@ def get_environment_summary(environment:EnvironmentDb) -> EnvironmentResponseSch
     )
 
 
-def get_entities_in_environment(session: Session, environment_id:int, entity_symbol:str) -> list[tuple[int, int]]:
-    coordinates = (
-        session.query(RoomObject.posicao_x, RoomObject.posicao_y)
-            .filter(RoomObject.ambiente_id == environment_id)
-            .filter(RoomObject.objeto_id == OBJECTS_DATABASE_IDS.get(entity_symbol))
-            .all()
-    )
+def get_entities_in_environment(entities_coordinates:tuple[int, int], entity_symbol:str) -> list[tuple[int, int]]:
+    coordinates = list(
+        filter(
+            lambda c: c[2] == OBJECTS_DATABASE_IDS.get(entity_symbol),
+            entities_coordinates)
+        )
+    coordinates = list(map(lambda c: (c.posicao_x, c.posicao_y), coordinates))
     
     return coordinates
 
 
-def get_rooms(session: Session, environment_id:int) -> list[RoomSchemas]:
-    rooms = session.query(RoomDb).filter(RoomDb.ambiente_id == environment_id).all()
-    wumpus_coordinates = get_entities_in_environment(session, environment_id, 'W')
-    hole_coordinates = get_entities_in_environment(session, environment_id, 'P')
-    gold_coordinates = get_entities_in_environment(session, environment_id, 'O')
+def get_rooms(entities:tuple[int, int, int], rooms:RoomDb) -> list[RoomSchemas]:
+    wumpus_coordinates = get_entities_in_environment(entities, 'W')
+    hole_coordinates = get_entities_in_environment(entities, 'P')
+    gold_coordinates = get_entities_in_environment(entities, 'O')
     
     room_list = []
     for room in rooms:
@@ -153,7 +152,11 @@ async def environment_by_id(environment_id:int, session:Session=Depends(get_sess
     environment_statics = get_environments_statics(
         environment,
     )
-    environment_rooms = get_rooms(session, environment_id)
+    entities = session.query(RoomObject.posicao_x, RoomObject.posicao_y, RoomObject.objeto_id) \
+        .filter(RoomObject.ambiente_id == environment_id) \
+        .all()
+    rooms = session.query(RoomDb).filter(RoomDb.ambiente_id == environment_id).all()
+    environment_rooms = get_rooms(entities, rooms)
     
     return EnvironmentSchemas(
         id=environment_id,
@@ -363,7 +366,12 @@ async def get_mini_mapa(environment_id:int, session:Session=Depends(get_session)
     environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == environment_id).first()
     if environment is None:
         raise HTTPException(status_code=404, detail='Ambiente não encontrado')
-    environment_rooms = get_rooms(session, environment_id)
+
+    entities = session.query(RoomObject.posicao_x, RoomObject.posicao_y, RoomObject.objeto_id) \
+        .filter(RoomObject.ambiente_id == environment_id) \
+        .all()
+    rooms = session.query(RoomDb).filter(RoomDb.ambiente_id == environment_id).all()
+    environment_rooms = get_rooms(entities, rooms)
     
     return environment_rooms
 
@@ -372,7 +380,11 @@ async def execution(
     environment_id:int, diagonal_movement:bool, 
     agents_data:list[AgentDataSchemas], session:Session=Depends(get_session)
 ) -> list[TurnSchemas]:
-    rooms = get_rooms(session, environment_id)
+    entities = session.query(RoomObject.posicao_x, RoomObject.posicao_y, RoomObject.objeto_id) \
+        .filter(RoomObject.ambiente_id == environment_id) \
+        .all()
+    rooms_db = session.query(RoomDb).filter(RoomDb.ambiente_id == environment_id).all()
+    rooms = get_rooms(entities, rooms_db)
     enviroment = Environment(
         id_=environment_id,
         diagonal_movement=diagonal_movement,
