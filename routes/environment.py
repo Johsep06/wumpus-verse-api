@@ -39,9 +39,7 @@ def get_entity_desity(rooms: int, number_entities: NumberEntitiesSchemas) -> Ent
     )
 
 
-def get_environments_statics(
-    environment: EnvironmentDb,
-) -> EnviromentsStaticsSchemas:
+def get_environments_statics(environment: EnvironmentDb) -> EnviromentsStaticsSchemas:
     environment_area = environment.altura * environment.largura
 
     number_of_rooms = environment.salas_ativas

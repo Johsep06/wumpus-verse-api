@@ -180,6 +180,15 @@ class Environment:
         #         pontos=agent.pts,
         #     ))
 
+        for agent in self.agent_queue:
+            step_histor.append(TurnSchemas(
+                agente=agent,
+                posicao_x=agent.position[0],
+                posicao_y=agent.position[1],
+                acao='',
+                pontos=0
+            ))
+
         while True:
         # for _ in range(10):
             for agent in self.agent_queue:
