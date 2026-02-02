@@ -182,7 +182,7 @@ class Environment:
 
         for agent in self.agent_queue:
             step_histor.append(TurnSchemas(
-                agente=agent,
+                agente=agent.tag,
                 posicao_x=agent.position[0],
                 posicao_y=agent.position[1],
                 acao='',
