@@ -92,6 +92,7 @@ class Environment:
 
     def add_agent(self, agent: Agent):
         self.agent_queue.append(agent)
+        agent.arrows = len(self.entities_positions['W'])
 
     def set_perceptions(self, perception: str, position: tuple[int, int]):
         if position not in self.rooms:
@@ -146,6 +147,23 @@ class Environment:
             'directions': agent_position_directions,
         }
 
+    def agent_shot(self, agent:Agent, direction:str):
+        shot_position = (
+            agent.position[0] + self.directions[direction][0],
+            agent.position[1] + self.directions[direction][1],
+        )
+        
+        if shot_position not in self.rooms:
+            return None
+        
+        dead_wumpus = False
+        if 'W' in self.rooms[shot_position].entities:
+            self.rooms[shot_position].hide_entity('W')
+            dead_wumpus = True
+        
+        return dead_wumpus
+        
+        
     def agent_action(self, agent: Agent, action: str):
         position = agent.position
         result = None
@@ -157,6 +175,11 @@ class Environment:
                 result = 'O'
         elif action in self.directions:
             result = self.move_agent(agent, action)
+            
+        elif action.islower():
+            result = self.agent_shot(agent, action.upper())
+
+            result = 'T' if result else 't'
 
         if result is None:
             return ''
@@ -205,8 +228,10 @@ class Environment:
                     agente=agent.tag,
                     posicao_x=agent.position[0],
                     posicao_y=agent.position[1],
-                    acao=choice,
+                    acao=choice if choice.islower() else '',
                     pontos=agent.pts,
+                    ouros=agent.gold,
+                    flechas=agent.arrows,
                 ))
                 if agent.game_over:
                     self.agent_queue.remove(agent)

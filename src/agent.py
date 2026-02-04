@@ -12,6 +12,7 @@ class Agent(ABC):
         self.position = position
         self.start_position = position
         self.gold = 0
+        self.arrows= 0
         
     @property
     def status(self) -> str:
@@ -33,15 +34,15 @@ class Agent(ABC):
         return f'Agent(tag={self.tag}, type:{self.type}, pts={self.pts}, game_over={self.game_over})'
 
     def update_pts(self):
-        if self.__status == 'W':
+        if 'W' in self.__status:
             self.pts -= 1000
-        elif self.__status == 'P':
+        elif 'P' in self.__status:
             self.pts -= 1000
-        elif self.__status == 'V':
+        elif 'V' in self.__status:
             self.pts += 1000
-        elif self.__status == 'T':
+        elif 'T' in self.__status:
             self.pts += 1000
-        elif self.__status == 't':
+        elif 't' in self.__status:
             self.pts -= 10
             
     def set_position(self, x: int, y: int):
@@ -51,4 +52,4 @@ class Agent(ABC):
         return self.position
 
     @abstractmethod
-    def execute(self, data_position: dict): ...
+    def execute(self, data_position: dict) -> str: ...
