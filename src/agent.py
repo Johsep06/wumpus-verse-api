@@ -34,11 +34,12 @@ class Agent(ABC):
         return f'Agent(tag={self.tag}, type:{self.type}, pts={self.pts}, game_over={self.game_over})'
 
     def update_pts(self):
+        self.pts -= 1
         if 'W' in self.__status:
             self.pts -= 1000
         elif 'P' in self.__status:
             self.pts -= 1000
-        elif 'V' in self.__status:
+        elif 'O' in self.__status:
             self.pts += 1000
         elif 'T' in self.__status:
             self.pts += 1000
