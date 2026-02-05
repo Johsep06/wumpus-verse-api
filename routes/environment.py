@@ -118,16 +118,17 @@ async def home(
 
     ids_enviroments_list = session.query(EnvironmentDb.id) \
         .order_by(desc(EnvironmentDb.data_criacao)) \
-        .limit(limit) \
-        .offset(offset) \
         .all()
-    ids_enviroments = [id for (id,) in ids_enviroments_list]
+    ids_enviroments_list = [id for (id,) in ids_enviroments_list]
+    ids_enviroments = ids_enviroments_list[offset:(offset + limit)]
     environments = []
 
     for id_ in ids_enviroments:
         environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == id_).first()
         environments.append(get_environment_summary(environment))
 
+    end_of_list = (offset + limit) >= len(ids_enviroments_list)
+    environments.append(end_of_list)
     return environments
 
 
