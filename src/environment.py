@@ -26,19 +26,19 @@ class Environment:
             self.directions.setdefault('SE', (1, 1))
 
         for room in rooms:
-            self.rooms[room.x, room.y] = Room()
+            self.rooms[room.y, room.x] = Room()
             if room.wumpus:
-                self.rooms[room.x, room.y].add_entity('W')
-                self.entities_positions['W'].append((room.x, room.y))
+                self.rooms[room.y, room.x].add_entity('W')
+                self.entities_positions['W'].append((room.y, room.x))
 
             if room.buraco:
-                self.rooms[room.x, room.y].add_entity('P')
-                self.entities_positions['P'].append((room.x, room.y))
+                self.rooms[room.y, room.x].add_entity('P')
+                self.entities_positions['P'].append((room.y, room.x))
 
             if room.ouro:
-                self.rooms[room.x, room.y].add_entity('O')
-                self.entities_positions['O'].append((room.x, room.y))
-                self.rooms[room.x, room.y].add_perception('br')
+                self.rooms[room.y, room.x].add_entity('O')
+                self.entities_positions['O'].append((room.y, room.x))
+                self.rooms[room.y, room.x].add_perception('br')
 
         for position in self.entities_positions['W']:
             self.set_perceptions('f', position)
@@ -235,7 +235,7 @@ class Environment:
                 ))
                 if agent.game_over:
                     self.agent_queue.remove(agent)
-                print(agent.position, agent.game_over, agent.gold)
+                print(agent.position, agent.game_over, agent.gold, agent_status)
             if self.agent_queue == []: break
         
         return step_histor
