@@ -209,7 +209,8 @@ class Environment:
                 posicao_x=agent.position[0],
                 posicao_y=agent.position[1],
                 acao='',
-                pontos=0
+                pontos=0,
+                flechas=agent.arrows,
             ))
 
         while True:
