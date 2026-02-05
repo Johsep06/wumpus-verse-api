@@ -172,7 +172,7 @@ class Environment:
             if 'O' in self.rooms[agent.position].entities:
                 self.rooms[agent.position].hide_entity('O')
                 self.rooms[agent.position].hide_perception('br')
-                result = 'O'
+                result = 'x'
         elif action in self.directions:
             result = self.move_agent(agent, action)
             
@@ -218,8 +218,6 @@ class Environment:
                 position_data = self.get_agent_position_data(agent)
                 choice = agent.execute(position_data)
                 agent_status = self.agent_action(agent, choice)
-                if agent_status == 'O':
-                    agent.gold += 1
                 print(agent_status)
                 agent.status = agent_status
                 agent.update_pts()

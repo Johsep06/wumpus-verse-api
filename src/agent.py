@@ -39,7 +39,8 @@ class Agent(ABC):
             self.pts -= 1000
         elif 'P' in self.__status:
             self.pts -= 1000
-        elif 'O' in self.__status:
+        elif 'x' in self.__status:
+            self.gold += 1
             self.pts += 1000
         elif 'T' in self.__status:
             self.pts += 1000
