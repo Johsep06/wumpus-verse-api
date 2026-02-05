@@ -391,7 +391,7 @@ async def execution(
         agent: Agent = None
 
         if data.type == 0:
-            agent = Agent0(str(data.id), (data.position_x, data.position_y))
+            agent = Agent0(str(data.id), (data.position_y, data.position_x))
 
         #! lembrar de colocar uma verificação caso não haja agente
         enviroment.add_agent(agent)
