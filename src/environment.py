@@ -230,7 +230,7 @@ class Environment:
                     )
                     print(shot_position)
                 else:
-                    shot_position = (0, 0)
+                    shot_position = (-1, -1)
                 
                 step_histor.append(TurnSchemas(
                     agente=agent.tag,
