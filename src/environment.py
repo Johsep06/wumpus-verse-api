@@ -223,6 +223,15 @@ class Environment:
                 agent.status = agent_status
                 agent.update_pts()
                 
+                if ((choice.islower())) and (choice.upper() in self.directions):
+                    shot_position = (
+                        agent.position[0] + self.directions[choice.upper()][0],
+                        agent.position[1] + self.directions[choice.upper()][1],
+                    )
+                    print(shot_position)
+                else:
+                    shot_position = (0, 0)
+                
                 step_histor.append(TurnSchemas(
                     agente=agent.tag,
                     posicao_x=agent.position[0],
@@ -231,6 +240,7 @@ class Environment:
                     pontos=agent.pts,
                     ouros=agent.gold,
                     flechas=agent.arrows,
+                    tiro_position=shot_position
                 ))
                 if agent.game_over:
                     self.agent_queue.remove(agent)
