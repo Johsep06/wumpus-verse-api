@@ -400,8 +400,8 @@ async def execution(
                 str(data.id),
                 (data.position_y, data.position_x),
                 enviroment.directions,
+                50,
                 100,
-                1000,
                 0.85,
                 0.05,
                 enviroment.get_map()
