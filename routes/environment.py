@@ -5,10 +5,10 @@ from sqlalchemy import func, delete, desc
 
 from schemas import EnvironmentSchemas, UserSchemas, EnviromentsStaticsSchemas, \
     NumberEntitiesSchemas, EntityDensitySchemas, EnvironmentResponseSchemas, RoomSchemas, \
-    AgentDataSchemas, TurnSchemas
+    AgentDataSchemas, TurnSchemas, Agent3PropertiesSchemas
 from dependencies import get_session, check_token
 from models import EnvironmentDb, RoomDb, RoomObject, User
-from src import Environment, Agent, Agent0
+from src import Environment, Agent, Agent0, Agent3
 
 environment_router = APIRouter(prefix='/environment', tags=['environment'])
 
@@ -374,7 +374,9 @@ async def get_mini_mapa(environment_id: int, session: Session = Depends(get_sess
 @environment_router.post('/execution')
 async def execution(
     environment_id: int, diagonal_movement: bool,
-    agents_data: list[AgentDataSchemas], session: Session = Depends(get_session)
+    agents_data: list[AgentDataSchemas],
+    agent_3_data:Agent3PropertiesSchemas=None,
+    session: Session = Depends(get_session)
 ) -> list[TurnSchemas]:
     entities = session.query(RoomObject.posicao_x, RoomObject.posicao_y, RoomObject.objeto_id) \
         .filter(RoomObject.ambiente_id == environment_id) \
@@ -392,6 +394,17 @@ async def execution(
 
         if data.type == 0:
             agent = Agent0(str(data.id), (data.position_y, data.position_x))
+        elif data.type == 3:
+            agent = Agent3(
+                str(data.id),
+                (data.position_y, data.position_x),
+                enviroment.directions,
+                agent_3_data.populacao,
+                agent_3_data.geracoes,
+                agent_3_data.taxa_de_cruzamento,
+                agent_3_data.taxa_de_mutacao,
+                enviroment.get_map()
+            )
 
         #! lembrar de colocar uma verificação caso não haja agente
         enviroment.add_agent(agent)
