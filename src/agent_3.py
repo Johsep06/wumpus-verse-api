@@ -84,7 +84,15 @@ class Agent3(Agent):
         count = dict(Counter(gene['result'])) 
 
         for value in count:
-            gene['pts'] += values[value] * count[value]
+            if value in values:
+                gene['pts'] += values[value] * count[value]
+            else:
+                if 'P' in value:
+                    gene['pts'] += values['P'] * count[value]
+                elif 'W' in value:
+                    gene['pts'] += values['W'] * count[value]
+                elif 'O' in value:
+                    gene['pts'] += values['O'] * count[value]
         
         gene['pts'] = gene['pts'] / len(gene['result'])
     
