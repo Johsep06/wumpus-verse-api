@@ -145,6 +145,7 @@ class Environment:
             'position': agent.position,
             'perception': agent_position_perception,
             'directions': agent_position_directions,
+            'objects': self.rooms[agent.position].entities
         }
 
     def agent_shot(self, agent:Agent, direction:str):
@@ -162,8 +163,15 @@ class Environment:
             dead_wumpus = True
         
         return dead_wumpus
+
+    def get_map(self):
+        map_:dict[tuple[int, int], str] = {}
         
-        
+        for position in self.rooms:
+            map_.setdefault((position[0], position[1]), ','.join(self.rooms[position].entities))
+
+        return map_
+
     def agent_action(self, agent: Agent, action: str):
         position = agent.position
         result = None
@@ -219,7 +227,6 @@ class Environment:
                 position_data = self.get_agent_position_data(agent)
                 choice = agent.execute(position_data)
                 agent_status = self.agent_action(agent, choice)
-                print(agent_status)
                 agent.status = agent_status
                 agent.update_pts()
                 
@@ -228,7 +235,6 @@ class Environment:
                         agent.position[0] + self.directions[choice.upper()][0],
                         agent.position[1] + self.directions[choice.upper()][1],
                     )
-                    print(shot_position)
                 else:
                     shot_position = (-1, -1)
                 
@@ -244,7 +250,7 @@ class Environment:
                 ))
                 if agent.game_over:
                     self.agent_queue.remove(agent)
-                print(agent.position, agent.game_over, agent.gold, agent_status)
+                # print(agent.position, agent.game_over, agent.gold, agent_status)
             if self.agent_queue == []: break
         
         return step_histor
