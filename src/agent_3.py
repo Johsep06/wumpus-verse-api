@@ -1,9 +1,9 @@
 from src.agent import Agent
+from src.fitness_compiler import compile
 
 import random
 from copy import deepcopy
 from collections import Counter
-
 
 
 class Agent3(Agent):
@@ -17,6 +17,7 @@ class Agent3(Agent):
         crossing_rate:float,
         mutation_rate:float,
         map_:dict[tuple[int, int], str],
+        fitness_expression:str=None
     ):
         super().__init__(tag, position)
         self.type = 3
@@ -26,6 +27,19 @@ class Agent3(Agent):
         self.map = map_
         self.crossing_rate = crossing_rate
         self.mutation_rate = mutation_rate
+        
+        if fitness_expression is None:
+            fitness_expression = (
+                '((PV * -1) + '
+                '(PI * -100) +'
+                '(TI * -100) +'
+                '(TV * 100) +'
+                '(SW * -100) +'
+                '(SP * -100) +'
+                '(SO * 100) +'
+                '(V * 1000)) / T'
+                )
+        self.fitness_expression = fitness_expression
 
     def generate_genes(self, amount: int, max_size: int) -> list[dict]:
         genes = []
@@ -80,8 +94,16 @@ class Agent3(Agent):
                 result.append('V')
                 gold_colected = 0
                 continue
-                
-            result.append(map_temp[position])
+            
+            if 'P' in map_temp[position]:
+                result.append('P')
+            elif 'W' in map_temp[position]:
+                result.append('W')
+            elif 'O' in map_temp[position]:
+                result.append('O')
+            else:
+                result.append(map_temp[position])
+            
             if 'O' in map_temp[position]:
                 gold_colected += 1
                 map_temp[position] = map_temp[position].replace('O', '')
@@ -89,32 +111,22 @@ class Agent3(Agent):
         gene['result'] = result
 
     def fitness(self, gene:dict) -> int:
+        count = dict(Counter(gene['result']))
         values = {
-            'O':100,
-            'T ':100,
-            't ':-100,
-            '#':-100,
-            '':-1,
-            'P':-100,
-            'W':-100,
-            'V':1000,
+            'PV': count.get('', 0),
+            'PI': count.get('#', 0),
+            'TV': count.get('T', 0),
+            'TI': count.get('t', 0),
+            'SW': count.get('W', 0),
+            'SP': count.get('P', 0),
+            'SO': count.get('O', 0),
+            'V': count.get('V', 0),
+            'T': len(count),
         }
+        fitness_function = compile(self.fitness_expression)
         
-        count = dict(Counter(gene['result'])) 
+        gene['pts'] = fitness_function(values)
 
-        for value in count:
-            if value in values:
-                gene['pts'] += values[value] * count[value]
-            else:
-                if 'P' in value:
-                    gene['pts'] += values['P'] * count[value]
-                elif 'W' in value:
-                    gene['pts'] += values['W'] * count[value]
-                elif 'O' in value:
-                    gene['pts'] += values['O'] * count[value]
-        
-        gene['pts'] = gene['pts'] / len(gene['result'])
-    
     def intersection(self, max_size:int, gene_a:dict, gene_b:dict):
         cut_a = random.randint(1, (len(gene_a['chromosome']) - 1))
         cut_b = random.randint(1, (len(gene_b['chromosome']) - 1))
