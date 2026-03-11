@@ -5,7 +5,7 @@ from sqlalchemy import func, delete, desc
 
 from schemas import EnvironmentSchemas, UserSchemas, EnviromentsStaticsSchemas, \
     NumberEntitiesSchemas, EntityDensitySchemas, EnvironmentResponseSchemas, RoomSchemas, \
-    AgentDataSchemas, TurnSchemas, Agent3PropertiesSchemas
+    AgentDataSchemas, TurnSchemas
 from dependencies import get_session, check_token
 from models import EnvironmentDb, RoomDb, RoomObject, User
 from src import Environment, Agent, Agent0, Agent3
