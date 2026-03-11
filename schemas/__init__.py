@@ -15,7 +15,8 @@ from .entity_density import EntityDensitySchemas
 from .environment_response import EnvironmentResponseSchemas
 from .turn import TurnSchemas
 from .agent_data import AgentDataSchemas
-from .agent_3_properties import Agent3PropertiesSchemas
+from .third_agent import ThirdAgentSchemas
+from .agent_db import AgentDBSchemas
 
 __all__ = [
     'EnvironmentSchemas',
@@ -35,5 +36,6 @@ __all__ = [
     'EnvironmentResponseSchemas',
     'TurnSchemas',
     'AgentDataSchemas',
-    'Agent3PropertiesSchemas',
+    'ThirdAgentSchemas',
+    'AgentDBSchemas',
 ]
