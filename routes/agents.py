@@ -61,7 +61,7 @@ async def get_agent(
     session: Session = Depends(get_session),
 ):
     agent_data = session.query(AgentDB).filter(AgentDB.id == agent_id).first()
-    
+
     if agent_data is None:
         return HTTPException(status_code=404, detail='Agente não encontrado')
 
@@ -77,8 +77,8 @@ async def get_agent(
         agent.properties = ThirdAgentSchemas(
             populacao=properties.populacao,
             geracoes=properties.geracoes,
-            taxa_de_cruzamento= properties.taxa_de_cruzamento,
-            taxa_de_mutacao= properties.taxa_de_mutacao,
+            taxa_de_cruzamento=properties.taxa_de_cruzamento,
+            taxa_de_mutacao=properties.taxa_de_mutacao,
             fitness=properties.fitness,
         )
 
@@ -95,15 +95,15 @@ async def update_agent(
     user_schemas: UserSchemas = Depends(check_token),
 ):
     agent = session.query(AgentDB).filter(AgentDB.id == agent_id).first()
-    
+
     if agent is None:
         raise HTTPException(status_code=404, detail='O agente não existe no banco de dados')
     if user_schemas.id != agent.user_id:
         raise HTTPException(status_code=403, detail='O usuário não tem permisão para realizar essa ação')
 
     if agent.tipo == 3:
-        properties = session.query(ThirdAgentDB).filter(
-            ThirdAgentDB.agent_id == agent_id).first()
+        properties = session.query(ThirdAgentDB).filter(ThirdAgentDB.agent_id == agent_id).first()
+
         properties.populacao = third_agent_schemas.populacao
         properties.geracoes = third_agent_schemas.geracoes
         properties.taxa_de_cruzamento = third_agent_schemas.taxa_de_cruzamento
@@ -152,33 +152,32 @@ async def list_agents(
         .order_by(desc(AgentDB.data)) \
         .all()
 
-    agents = []
+    agents: list[AgentDBSchemas] = []
     for i in range(offset, (offset + limit)):
         try:
             agent = agents_list[i]
         except IndexError:
             break
 
-        if agent.tipo == 1:
-            agents.append(
-                AgentDBSchemas(
-                    agent_id=agent.id,
-                    user_id=agent.user_id,
-                    data=agent.data,
-                    tipo=agent.tipo
-                )
-            )
-        elif agent.tipo == 3:
+        agent_data = AgentDBSchemas(
+            agent_id=agent.id,
+            user_id=agent.user_id,
+            data=agent.data,
+            tipo=agent.tipo
+        )
+
+        if agent.tipo == 3:
             third_agent = session.query(ThirdAgentDB) \
                 .filter(ThirdAgentDB.agent_id == agent.id) \
                 .first()
-            agents.append(ThirdAgentSchemas(
+            agent_data.properties = ThirdAgentSchemas(
                 populacao=third_agent.populacao,
                 geracoes=third_agent.populacao,
                 taxa_de_cruzamento=third_agent.taxa_de_cruzamento,
                 taxa_de_mutacao=third_agent.taxa_de_mutacao,
                 fitness=third_agent.fitness
-            ))
+            )
+        agents.append(agent_data)
 
     end_of_list = (offset + limit) >= len(agents_list)
     agents.append(end_of_list)
