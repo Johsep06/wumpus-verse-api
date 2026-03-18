@@ -14,6 +14,7 @@ class Agent(ABC):
         self.gold = 0
         self.arrows= 0
         self.action_queue:list[str] = []
+        self.kills = 0
         
     @property
     def status(self) -> str:
@@ -27,7 +28,11 @@ class Agent(ABC):
             if value in status:
                 self.game_over = True
         
-        if (self.position == self.start_position) and (self.gold > 0):
+        is_in_the_initial_room = self.position == self.start_position
+        has_gold = self.gold > 0
+        has_kill = self.kills > 0
+        
+        if is_in_the_initial_room and (has_gold or has_kill):
             self.game_over = True
             self._status = 'V'
 
@@ -44,6 +49,7 @@ class Agent(ABC):
             self.gold += 1
             self.pts += 1000
         elif 'T' in self._status:
+            self.kills += 1
             self.pts += 1000
         elif 't' in self._status:
             self.pts -= 10
