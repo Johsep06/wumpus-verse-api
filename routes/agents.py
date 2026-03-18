@@ -6,6 +6,7 @@ from sqlalchemy import desc
 from schemas import UserSchemas, AgentDBSchemas, ThirdAgentSchemas
 from dependencies import get_session, check_token
 from models import AgentDB, ThirdAgentDB
+from src import validate_fitness
 
 agents_router = APIRouter(prefix='/agents', tags=['agents'])
 
@@ -37,6 +38,9 @@ async def new_agent(
     session.flush()
 
     if agent_type == 3:
+        fitness_is_valid = validate_fitness(third_agent_schemas.fitness.replace(' ', ''))
+        if not fitness_is_valid:
+            raise HTTPException(status_code=400, detail='Função fitness inválida')
         third_agent = ThirdAgentDB(
             agent_id=agent.id,
             populacao=third_agent_schemas.populacao,
