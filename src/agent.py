@@ -53,6 +53,8 @@ class Agent(ABC):
             self.pts += 1000
         elif 't' in self._status:
             self.pts -= 10
+        elif 'V' in self._status:
+            self.pts += 1000
             
     def set_position(self, x: int, y: int):
         self.position = (x, y)
