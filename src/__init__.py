@@ -3,6 +3,7 @@ from .environment import Environment
 from .agent import Agent
 from .agent_0 import Agent0
 from .agent_3 import Agent3
+from .pattern import validate_fitness
 
 __all__ = [
     'Room',
@@ -10,4 +11,5 @@ __all__ = [
     'Agent',
     'Agent0',
     'Agent3',
+    'validate_fitness',
 ]
