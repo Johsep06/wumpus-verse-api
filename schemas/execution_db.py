@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 
 
 class ExecutionDBSchemas(BaseModel):
@@ -12,4 +13,5 @@ class ExecutionDBSchemas(BaseModel):
     qtd_flechas: int
     qtd_wumpus: int
     pontos: int
+    data: datetime
     historico: List[str]
