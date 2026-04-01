@@ -53,7 +53,9 @@ app.add_middleware(
 from routes.environment import environment_router
 from routes.auth import auth_router
 from routes.agents import agents_router
+from routes.execution import execution_router
 
 app.include_router(environment_router)
 app.include_router(auth_router)
 app.include_router(agents_router)
+app.include_router(execution_router)
