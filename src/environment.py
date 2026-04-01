@@ -216,7 +216,7 @@ class Environment:
                 agente=agent.tag,
                 posicao_x=agent.position[0],
                 posicao_y=agent.position[1],
-                acao='',
+                acao='-',
                 pontos=0,
                 flechas=agent.arrows,
             ))
@@ -242,7 +242,7 @@ class Environment:
                     agente=agent.tag,
                     posicao_x=agent.position[0],
                     posicao_y=agent.position[1],
-                    acao=choice if choice.islower() else '',
+                    acao=choice,
                     pontos=agent.pts,
                     ouros=agent.gold,
                     flechas=agent.arrows,
