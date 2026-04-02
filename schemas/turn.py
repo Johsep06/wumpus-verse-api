@@ -10,3 +10,4 @@ class TurnSchemas(BaseModel):
     ouros: int = 0
     flechas: int = 0
     pontos: int = 0
+    kills: int = 0
