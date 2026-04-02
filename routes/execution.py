@@ -37,7 +37,7 @@ async def save_execution(
         posicao_x=execution_schemas[0].posicao_x,
         posicao_y=execution_schemas[0].posicao_y,
         qtd_ouros=execution_schemas[-1].ouros,
-        wumpus=0,
+        wumpus=execution_schemas[-1].kills,
         qtd_flechas=execution_schemas[-1].flechas,
         pontos=execution_schemas[-1].pontos,
         historico=','.join(histor)
@@ -80,10 +80,12 @@ async def get_execution_by_id(
         qtd_wumpus=execution_data.wumpus,
         pontos=execution_data.pontos,
         data=execution_data.data,
-        historico=histor
+        historico=histor,
+        qtd_passos=len(list(filter(lambda x: x.isupper(), histor)))
     )
 
     return execution
+
 
 @execution_router.delete('/user')
 async def delete_execution(
