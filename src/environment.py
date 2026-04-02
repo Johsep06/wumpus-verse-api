@@ -246,7 +246,8 @@ class Environment:
                     pontos=agent.pts,
                     ouros=agent.gold,
                     flechas=agent.arrows,
-                    tiro_position=shot_position
+                    tiro_position=shot_position,
+                    kills=agent.kills,
                 ))
                 if agent.game_over:
                     self.agent_queue.remove(agent)
