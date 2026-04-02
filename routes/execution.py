@@ -84,3 +84,26 @@ async def get_execution_by_id(
     )
 
     return execution
+
+@execution_router.delete('/user')
+async def delete_execution(
+    execution_id: int,
+    session: Session = Depends(get_session),
+    user_schemas: UserSchemas = Depends(check_token),
+):
+    execution_data = session.query(ExecutionDB) \
+        .filter(ExecutionDB.id == execution_id) \
+        .first()
+    
+    if execution_data is None:
+        raise HTTPException(status_code=404, detail='Execução não encontrada')
+    if user_schemas.id != execution_data.user_id:
+        raise HTTPException(status_code=403, detail='O usuário não tem permisão para realizar essa ação')
+    
+    session.delete(execution_data)
+    session.commit()
+    return {
+        'status_code': 200,
+        'detail': 'Execução deletada com sucesso.',
+    }
+    ...
