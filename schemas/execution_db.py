@@ -5,6 +5,7 @@ from datetime import datetime
 
 class ExecutionDBSchemas(BaseModel):
     id: Optional[int]
+    user_id: Optional[int]
     agente_id: int
     ambiente_id: int
     posicao_x: int
