@@ -32,9 +32,11 @@ async def save_execution(
     execution = ExecutionDB(
         id_agente=agent_id,
         id_ambiente=environment_id,
+        user_id= user_schemas.id,
         posicao_x=execution_schemas[0].posicao_x,
         posicao_y=execution_schemas[0].posicao_y,
         qtd_ouros=execution_schemas[-1].ouros,
+        wumpus=0,
         qtd_flechas=execution_schemas[-1].flechas,
         pontos=execution_schemas[-1].pontos,
         historico=','.join(histor)
