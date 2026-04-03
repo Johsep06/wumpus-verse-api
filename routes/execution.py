@@ -10,6 +10,37 @@ from models import ExecutionDB
 execution_router = APIRouter(prefix='/execution', tags=['execution'])
 
 
+def prepare_execution(execution_data) -> ExecutionDBSchemas:
+    """
+    Converte um objeto de dados de execução
+    em um schema Pydantic `ExecutionDBSchemas` com o histórico processado.
+    """
+    histor_str: str = execution_data.historico
+    histor_str = histor_str[2:]
+    histor_list: list[str] = histor_str.split(',')
+    histor_list = ['', *histor_list]
+
+    qtd_passos = len(list(filter(lambda x: x.isupper(), histor_list)))
+
+    execution = ExecutionDBSchemas(
+        id=execution_data.id,
+        user_id=execution_data.user_id,
+        agente_id=execution_data.id_agente,
+        ambiente_id=execution_data.id_ambiente,
+        posicao_x=execution_data.posicao_x,
+        posicao_y=execution_data.posicao_y,
+        qtd_ouro=execution_data.qtd_ouros,
+        qtd_flechas=execution_data.qtd_flechas,
+        qtd_wumpus=execution_data.wumpus,
+        pontos=execution_data.pontos,
+        data=execution_data.data,
+        historico=histor_list,
+        qtd_passos=qtd_passos
+    )
+
+    return execution
+
+
 @execution_router.get('/')
 async def home(
     page: int = 1,
@@ -63,26 +94,7 @@ async def get_execution_by_id(
     if execution_data is None:
         return HTTPException(status_code=404, detail='Execução não encontrada')
 
-    histor: str = execution_data.historico
-    histor = histor[2:]
-    histor = histor.split(',')
-    histor = ['', *histor]
-
-    execution = ExecutionDBSchemas(
-        id=execution_data.id,
-        user_id=execution_data.user_id,
-        agente_id=execution_data.id_agente,
-        ambiente_id=execution_data.id_ambiente,
-        posicao_x=execution_data.posicao_x,
-        posicao_y=execution_data.posicao_y,
-        qtd_ouro=execution_data.qtd_ouros,
-        qtd_flechas=execution_data.qtd_flechas,
-        qtd_wumpus=execution_data.wumpus,
-        pontos=execution_data.pontos,
-        data=execution_data.data,
-        historico=histor,
-        qtd_passos=len(list(filter(lambda x: x.isupper(), histor)))
-    )
+    execution = prepare_execution(execution_data)
 
     return execution
 
@@ -108,4 +120,51 @@ async def delete_execution(
         'status_code': 200,
         'detail': 'Execução deletada com sucesso.',
     }
-    ...
+
+
+@execution_router.get('/list-user')
+async def user_excutions(
+    page: int = 1,
+    limit: int = 5,
+    agent_id: int = 0,
+    enviroment_id: int = 0,
+    session: Session = Depends(get_session),
+    user_schemas: UserSchemas = Depends(check_token),
+):
+    
+    offset = (page - 1) * limit
+    
+    # execution: list[ExecutionDB] = None
+    
+    if agent_id != 0 and enviroment_id != 0:
+        execution = session.query(ExecutionDB) \
+            .filter(ExecutionDB.id_ambiente == enviroment_id) \
+            .filter(ExecutionDB.id_agente == agent_id) \
+            .offset(offset)
+
+    elif agent_id != 0:
+        execution = session.query(ExecutionDB) \
+            .filter(ExecutionDB.id_agente == agent_id) \
+            .offset(offset)
+
+    elif enviroment_id != 0:
+        execution = session.query(ExecutionDB) \
+            .filter(ExecutionDB.id_ambiente == enviroment_id) \
+            .offset(offset)
+    else:
+        execution = session.query(ExecutionDB) \
+            .filter(ExecutionDB.user_id == user_schemas.id) \
+            .offset(offset)
+    
+    if execution is None:
+        return HTTPException(
+            status_code=404,
+            detail='Não foram encontradas execuções que atendam ao padrão de busca informado'
+        )
+    
+    executions = []
+    for execution_db in execution:
+        executions.append(prepare_execution(execution_db))
+
+    
+    return executions
