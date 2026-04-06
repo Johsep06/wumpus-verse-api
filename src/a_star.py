@@ -56,7 +56,7 @@ def a_star(
     map_: dict[tuple[int, int], str],
     obstacles: list[str],
     directions: dict[tuple[int, int], str]
-) -> str:
+) -> list[str]:
     f_score = {cell: float('inf') for cell in list(map_.keys())}
     g_score: dict[tuple, int] = {}
 
