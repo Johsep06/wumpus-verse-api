@@ -19,6 +19,7 @@ EnvironmentDb = Base.classes.ambiente
 RoomDb = Base.classes.sala
 RoomObject = Base.classes.sala_objeto
 AgentDB = Base.classes.primeiro_agente
+SecondAgentDB = Base.classes.segundo_agente
 ThirdAgentDB = Base.classes.terceiro_agente
 ExecutionDB = Base.classes.execucao
 
@@ -30,6 +31,7 @@ __all__ = [
     'RoomDb',
     'RoomObject',
     'AgentDB',
+    'SecondAgentDB',
     'ThirdAgentDB',
     'ExecutionDB',
 ]
