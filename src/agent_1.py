@@ -1,7 +1,7 @@
 from .agent import Agent
 import random
 
-class Agent0(Agent):
+class Agent1(Agent):
     def __init__(self, tag: str, position:tuple[int, int]):
         super().__init__(tag, position)
         self.type = 0

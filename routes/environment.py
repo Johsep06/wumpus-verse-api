@@ -8,7 +8,7 @@ from schemas import EnvironmentSchemas, UserSchemas, EnviromentsStaticsSchemas, 
     AgentDataSchemas, TurnSchemas
 from dependencies import get_session, check_token
 from models import EnvironmentDb, RoomDb, RoomObject, User
-from src import Environment, Agent, Agent0, Agent3
+from src import Environment, Agent, Agent1, Agent3
 
 environment_router = APIRouter(prefix='/environment', tags=['environment'])
 
@@ -392,9 +392,9 @@ async def execution(
         agent: Agent = None
 
         if data.type == 0:
-            agent = Agent0(str(data.id), (data.position_y, data.position_x))
+            agent = Agent1(str(data.id), (data.position_y, data.position_x))
         elif data.type == 1:
-            agent = Agent0(str(data.id), (data.position_y, data.position_x))
+            agent = Agent1(str(data.id), (data.position_y, data.position_x))
         elif data.type == 3:
             agent = Agent3(
                 str(data.id),
