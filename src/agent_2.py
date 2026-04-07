@@ -37,7 +37,7 @@ class Agent2(Agent):
             return True
         if self.kills > 0 and not self.properties.garimpeiro:
             return True
-        if self.gold > 0 and not self.properties.assassino:
+        if self.gold > 0 and not self.properties.cacador:
             return True
 
         return False
@@ -155,7 +155,7 @@ class Agent2(Agent):
 
         elif has_gold and \
             has_wumpus and \
-            (self.properties.assassino == self.properties.garimpeiro):
+            (self.properties.cacador == self.properties.garimpeiro):
 
             gold_position = self.memory.search_position(self.position, Cell.GOLD, True)
             wumpus_position = self.memory.search_position(self.position, Cell.WUMPUS)
@@ -169,7 +169,7 @@ class Agent2(Agent):
             else:
                 self.action_queue = self.calculate_gold_route(gold_position[1:])
 
-        elif has_wumpus and self.properties.assassino and has_arrow:
+        elif has_wumpus and self.properties.cacador and has_arrow:
             wumpus_position = self.memory.search_position(self.position, Cell.WUMPUS)
             self.action_queue = self.calculate_wumpus_route(wumpus_position[1:])
 
