@@ -3,13 +3,38 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
-from schemas import UserSchemas, AgentDBSchemas, ThirdAgentSchemas
+from schemas import UserSchemas, AgentDBSchemas, ThirdAgentSchemas, SecondAgentSchemas
 from dependencies import get_session, check_token
-from models import AgentDB, ThirdAgentDB
+from models import AgentDB, SecondAgentDB, ThirdAgentDB
 from src import validate_fitness
 
 agents_router = APIRouter(prefix='/agents', tags=['agents'])
 
+def register_second_agent_db(user_id:int, agent_id:int, second_agent_schemas:SecondAgentSchemas):
+    second_agent_db = SecondAgentDB(
+        id = agent_id,
+        user_id = user_id,
+        memoria = True,
+        coragem = second_agent_schemas.corajoso,
+        explorador = second_agent_schemas.explorador,
+        assassino = second_agent_schemas.cacador,
+        busca_ouro = second_agent_schemas.garimpeiro,
+        forma_de_busca = 1
+    )
+    
+    return second_agent_db
+
+def register_third_agent_db(user_id:int, agent_id:int, third_agent_schemas:ThirdAgentSchemas):
+    third_agent_db = ThirdAgentDB(
+        agent_id=agent_id,
+        populacao=third_agent_schemas.populacao,
+        geracoes=third_agent_schemas.geracoes,
+        taxa_de_cruzamento=third_agent_schemas.taxa_de_cruzamento,
+        taxa_de_mutacao=third_agent_schemas.taxa_de_mutacao,
+        fitness=third_agent_schemas.fitness
+    )
+
+    return third_agent_db
 
 @agents_router.get('/')
 async def home(
@@ -24,6 +49,7 @@ async def home(
 @agents_router.post('/user')
 async def new_agent(
     agent_type: int,
+    second_agent_schemas: SecondAgentSchemas,
     third_agent_schemas: ThirdAgentSchemas,
     session: Session = Depends(get_session),
     user_schemas: UserSchemas = Depends(check_token),
@@ -37,17 +63,23 @@ async def new_agent(
     session.add(agent)
     session.flush()
 
-    if agent_type == 3:
+    if agent_type == 2:
+        second_agent = register_second_agent_db(
+            user_schemas.id,
+            agent.id,
+            second_agent_schemas,
+        )
+
+        session.add(second_agent)
+
+    elif agent_type == 3:
         fitness_is_valid = validate_fitness(third_agent_schemas.fitness.replace(' ', ''))
         if not fitness_is_valid:
             raise HTTPException(status_code=400, detail='Função fitness inválida')
-        third_agent = ThirdAgentDB(
-            agent_id=agent.id,
-            populacao=third_agent_schemas.populacao,
-            geracoes=third_agent_schemas.geracoes,
-            taxa_de_cruzamento=third_agent_schemas.taxa_de_cruzamento,
-            taxa_de_mutacao=third_agent_schemas.taxa_de_mutacao,
-            fitness=third_agent_schemas.fitness
+        third_agent = register_third_agent_db(
+            user_schemas.id,
+            agent.id,
+            third_agent_schemas
         )
 
         session.add(third_agent)
