@@ -1,26 +1,13 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.automap import automap_base
-
-from main import DB_CONFIG
-
-DATABASE_URL = (
-    f'postgresql+psycopg2://{DB_CONFIG["user"]}:{DB_CONFIG["password"]}'
-    f'@{DB_CONFIG["host"]}:{DB_CONFIG["port"]}/{DB_CONFIG["name"]}'
-    '?sslmode=require'
-)
-
-engine = create_engine(DATABASE_URL)
-
-Base = automap_base()
-Base.prepare(autoload_with=engine)
+from .engine import Base, engine
+from .agents import AgentDB, SecondAgentDB, ThirdAgentDB, \
+    build_agent_record, build_agent_schemas, \
+    build_second_agent_record, build_second_agent_schemas, \
+    build_third_agent_record, build_third_agent_schemas
 
 User = Base.classes.usuario
 EnvironmentDb = Base.classes.ambiente
 RoomDb = Base.classes.sala
 RoomObject = Base.classes.sala_objeto
-AgentDB = Base.classes.primeiro_agente
-SecondAgentDB = Base.classes.segundo_agente
-ThirdAgentDB = Base.classes.terceiro_agente
 ExecutionDB = Base.classes.execucao
 
 __all__ = [
@@ -34,4 +21,10 @@ __all__ = [
     'SecondAgentDB',
     'ThirdAgentDB',
     'ExecutionDB',
+    'build_agent_record',
+    'build_agent_schemas',
+    'build_second_agent_record',
+    'build_second_agent_schemas',
+    'build_third_agent_record',
+    'build_third_agent_schemas',
 ]
