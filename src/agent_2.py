@@ -151,7 +151,8 @@ class Agent2(Agent):
         has_danger_room = self.memory.has_in_memory(self.position, Cell.UNKNOW, False)
         has_arrow = self.arrows > 0
 
-        if self.memory_status() and self.inventory_status():
+        if (self.memory_status() and self.inventory_status()) or \
+        (not has_safe_room and not has_danger_room):
             exit_position = self.memory.search_position(self.position, Cell.EXIT)
             self.action_queue = self.calculate_secure_route(exit_position[1:])
 
