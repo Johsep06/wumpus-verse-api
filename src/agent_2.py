@@ -141,6 +141,8 @@ class Agent2(Agent):
             self.memory.cells[self.position].is_safe = True
 
         if self.action_queue:
+            if self.action_queue[0] != 'x' and self.action_queue[0].islower():
+                self.arrows -= 1
             return self.action_queue.pop(0)
 
         has_gold = self.memory.has_in_memory(self.position, Cell.GOLD, True)
@@ -202,6 +204,8 @@ class Agent2(Agent):
             self.action_queue = self.calculate_danger_route(danger_position[1:], shot)
         else:
             random_position = self.memory.random_position(self.position)
-            self.action_queue = self.calculate_secure_route(random_position[1:])
+            self.action_queue = self.calculate_secure_route(random_position)
 
+        if self.action_queue[0] != 'x' and self.action_queue[0].islower():
+            self.arrows -= 1
         return self.action_queue.pop(0)
