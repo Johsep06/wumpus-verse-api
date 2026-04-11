@@ -7,8 +7,12 @@ from schemas import EnvironmentSchemas, UserSchemas, EnviromentsStaticsSchemas, 
     NumberEntitiesSchemas, EntityDensitySchemas, EnvironmentResponseSchemas, RoomSchemas, \
     AgentDataSchemas, TurnSchemas
 from dependencies import get_session, check_token
-from models import EnvironmentDb, RoomDb, RoomObject, User
-from src import Environment, Agent, Agent1, Agent3
+from models import EnvironmentDb, RoomDb, RoomObject, User, \
+    AgentDB, SecondAgentDB, ThirdAgentDB, \
+    build_agent_record, build_agent_schemas, \
+    build_second_agent_record, build_second_agent_schemas, \
+    build_third_agent_record, build_third_agent_schemas
+from src import Environment, Agent, Agent1, Agent2, Agent3
 
 environment_router = APIRouter(prefix='/environment', tags=['environment'])
 
@@ -372,8 +376,9 @@ async def get_mini_mapa(environment_id: int, session: Session = Depends(get_sess
 
 
 @environment_router.post('/execution')
-async def execution(
-    environment_id: int, diagonal_movement: bool,
+async def execution(    
+    environment_id: int,
+    diagonal_movement: bool,
     agents_data: list[AgentDataSchemas],
     session: Session = Depends(get_session)
 ) -> list[TurnSchemas]:
@@ -391,23 +396,82 @@ async def execution(
     for data in agents_data:
         agent: Agent = None
 
-        if data.type == 0:
+        if data.type == 0 and data.id == 0:
             agent = Agent1(str(data.id), (data.position_y, data.position_x))
-        elif data.type == 1:
+        elif data.type == 1 and data.id == 0:
             agent = Agent1(str(data.id), (data.position_y, data.position_x))
-        elif data.type == 3:
+        elif data.type == 2 and data.id == 0:
+            second_agent_data = session.query(SecondAgentDB) \
+                .filter(SecondAgentDB.id == 2) \
+                .first()
+                
+            second_agent = build_second_agent_schemas(
+                second_agent_data
+            )
+            agent = Agent2(
+                str(data.id),
+                (data.position_y, data.position_x),
+                enviroment.directions,
+                second_agent
+            )
+        elif data.type == 3 and data.id == 0:
+            third_agent_data = session.query(ThirdAgentDB) \
+                .filter(ThirdAgentDB.agent_id == 3) \
+                .first()
+            
+            third_agent = build_third_agent_schemas(
+                third_agent_data
+            )
             agent = Agent3(
                 str(data.id),
                 (data.position_y, data.position_x),
                 enviroment.directions,
-                50,
-                100,
-                0.85,
-                0.05,
-                enviroment.get_map()
+                enviroment.get_map(),
+                third_agent,
             )
+        
+        else:
+            agent_db = session.query(AgentDB) \
+                .filter(AgentDB.id == data.id) \
+                .first()
 
-        #! lembrar de colocar uma verificação caso não haja agente
+            if not agent_db:
+                return HTTPException(status_code=404, detail='Agente não encontrado')
+            
+            if agent_db.tipo == 1:
+                agent = Agent1(str(data.id), (data.position_y, data.position_x))
+            elif agent_db.tipo == 2:
+                second_agent_data = session.query(SecondAgentDB) \
+                    .filter(SecondAgentDB.id == agent_db.id) \
+                    .first()
+                
+                second_agent = build_second_agent_schemas(
+                    second_agent_data
+                )
+                agent = Agent2(
+                    str(data.id),
+                    (data.position_y, data.position_x),
+                    enviroment.directions,
+                    second_agent
+                )
+            elif agent_db.tipo == 3:
+                third_agent_data = session.query(ThirdAgentDB) \
+                    .filter(ThirdAgentDB.agent_id == agent_db.id) \
+                    .first()
+                
+                third_agent = build_third_agent_schemas(
+                    third_agent_data
+                )
+                agent = Agent3(
+                    str(data.id),
+                    (data.position_y, data.position_x),
+                    enviroment.directions,
+                    enviroment.get_map(),
+                    third_agent,
+                )
+                
+                
+
         enviroment.add_agent(agent)
 
     step_histor = enviroment.execution()
