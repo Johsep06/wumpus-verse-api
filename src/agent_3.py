@@ -1,5 +1,6 @@
 from src.agent import Agent
 from src.fitness_compiler import compile
+from schemas import ThirdAgentSchemas
 
 import random
 from copy import deepcopy
@@ -12,34 +13,18 @@ class Agent3(Agent):
         tag:str,
         position,
         directions: dict[str, tuple[int, int]], 
-        population:int,
-        generations:int,
-        crossing_rate:float,
-        mutation_rate:float,
         map_:dict[tuple[int, int], str],
-        fitness_expression:str=None
+        agent_schemas:ThirdAgentSchemas
     ):
         super().__init__(tag, position)
         self.type = 3
         self.directions = directions
-        self.population = population
-        self.generations = generations
+        self.population = agent_schemas.populacao
+        self.generations = agent_schemas.geracoes
         self.map = map_
-        self.crossing_rate = crossing_rate
-        self.mutation_rate = mutation_rate
-        
-        if fitness_expression is None:
-            fitness_expression = (
-                '((PV * -1) + '
-                '(PI * -100) +'
-                '(TI * -100) +'
-                '(TV * 100) +'
-                '(SW * -100) +'
-                '(SP * -100) +'
-                '(SO * 100) +'
-                '(V * 1000)) / T'
-                )
-        self.fitness_expression = fitness_expression
+        self.crossing_rate = agent_schemas.taxa_de_cruzamento
+        self.mutation_rate = agent_schemas.taxa_de_cruzamento
+        self.fitness_expression = agent_schemas.fitness
 
     def generate_genes(self, amount: int, max_size: int) -> list[dict]:
         genes = []
