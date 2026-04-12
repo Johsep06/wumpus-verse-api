@@ -49,6 +49,7 @@ class Agent3(Agent):
         map_temp = self.map.copy()
         result = []
         gold_colected = 0
+        kills = 0
         for chromosome in gene['chromosome']:
             if chromosome.islower():
                 shot_position = (
@@ -59,6 +60,7 @@ class Agent3(Agent):
                     result.append('t')
                 elif 'W' in map_temp[shot_position]:
                     result.append('T')
+                    kills += 1
                     map_temp[shot_position] = map_temp[shot_position].replace('W', '')
                 else:
                     result.append('t')
@@ -72,7 +74,8 @@ class Agent3(Agent):
                 result.append('#')
                 continue
         
-            elif gold_colected > 0 and position == self.start_position:
+            elif (gold_colected > 0 and position == self.start_position) or \
+            (kills > 0 and position == self.start_position):
                 result.append('V')
                 gold_colected = 0
                 continue
