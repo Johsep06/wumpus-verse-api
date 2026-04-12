@@ -113,7 +113,7 @@ async def get_agent(
         .first()
 
     if agent_data is None:
-        return HTTPException(status_code=404, detail='Agente não encontrado')
+        raise HTTPException(status_code=404, detail='Agente não encontrado')
 
     agent = build_agent_schemas(agent_data)
     if agent_data.tipo == 2:

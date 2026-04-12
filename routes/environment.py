@@ -401,7 +401,7 @@ async def execution(
             .first()
 
         if not agent_db:
-            return HTTPException(status_code=404, detail='Agente não encontrado')
+            raise HTTPException(status_code=404, detail='Agente não encontrado')
         
         if agent_db.tipo == 1:
             agent = Agent1(data.id, (data.position_y, data.position_x))

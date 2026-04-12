@@ -92,7 +92,7 @@ async def get_execution_by_id(
         .first()
 
     if execution_data is None:
-        return HTTPException(status_code=404, detail='Execução não encontrada')
+        raise HTTPException(status_code=404, detail='Execução não encontrada')
 
     execution = prepare_execution(execution_data)
 
@@ -157,7 +157,7 @@ async def user_excutions(
             .offset(offset)
     
     if execution is None:
-        return HTTPException(
+        raise HTTPException(
             status_code=404,
             detail='Não foram encontradas execuções que atendam ao padrão de busca informado'
         )
