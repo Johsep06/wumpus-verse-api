@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class TurnSchemas(BaseModel):
-    agente: str
+    agente: int
     posicao_x: int
     posicao_y: int
     acao: str
