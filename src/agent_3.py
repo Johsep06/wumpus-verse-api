@@ -22,8 +22,8 @@ class Agent3(Agent):
         self.population = agent_schemas.populacao
         self.generations = agent_schemas.geracoes
         self.map = map_
-        self.crossing_rate = agent_schemas.taxa_de_cruzamento
-        self.mutation_rate = agent_schemas.taxa_de_cruzamento
+        self.crossing_rate = agent_schemas.taxa_de_cruzamento / 100
+        self.mutation_rate = agent_schemas.taxa_de_mutacao / 100
         self.fitness_expression = agent_schemas.fitness
 
     def generate_genes(self, amount: int, max_size: int) -> list[dict]:
