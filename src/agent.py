@@ -3,8 +3,8 @@ import random
 
 
 class Agent(ABC):
-    def __init__(self, tag: str, position:tuple[int, int]):
-        self.tag = tag
+    def __init__(self, id_: int, position:tuple[int, int]):
+        self.id = id_
         self.type = -1
         self.game_over = False
         self._status = ''
@@ -37,7 +37,7 @@ class Agent(ABC):
             self._status = 'V'
 
     def __str__(self):
-        return f'Agent(tag={self.tag}, type:{self.type}, pts={self.pts}, game_over={self.game_over})'
+        return f'Agent(tag={self.id}, type:{self.type}, pts={self.pts}, game_over={self.game_over})'
 
     def update_pts(self):
         self.pts -= 1

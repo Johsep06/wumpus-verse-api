@@ -9,12 +9,12 @@ from schemas import SecondAgentSchemas
 class Agent2(Agent):
     def __init__(
         self,
-        tag: str,
+        id_: int,
         position: tuple[int, int],
         directions: dict[str, tuple[int, int]],
         properties: SecondAgentSchemas,
     ):
-        super().__init__(tag, position)
+        super().__init__(id_, position)
         self.type = 1
         self.memory = Memory(position, directions)
         self.properties = properties

@@ -84,7 +84,7 @@ class Environment:
 
         for agent in self.agent_queue:
             display.append(
-                f'{agent.tag} | x:{agent.position[0]}, y:{agent.position[1]}')
+                f'{agent.id} | x:{agent.position[0]}, y:{agent.position[1]}')
 
         display.append('---------------')
 
@@ -213,7 +213,7 @@ class Environment:
 
         for agent in self.agent_queue:
             step_histor.append(TurnSchemas(
-                agente=agent.tag,
+                agente=agent.id,
                 posicao_x=agent.position[0],
                 posicao_y=agent.position[1],
                 acao='-',
@@ -239,7 +239,7 @@ class Environment:
                     shot_position = (-1, -1)
                 
                 step_histor.append(TurnSchemas(
-                    agente=agent.tag,
+                    agente=agent.id,
                     posicao_x=agent.position[0],
                     posicao_y=agent.position[1],
                     acao=choice,

@@ -10,13 +10,13 @@ from collections import Counter
 class Agent3(Agent):
     def __init__(
         self, 
-        tag:str,
+        id_:int,
         position,
         directions: dict[str, tuple[int, int]], 
         map_:dict[tuple[int, int], str],
         agent_schemas:ThirdAgentSchemas
     ):
-        super().__init__(tag, position)
+        super().__init__(id_, position)
         self.type = 3
         self.directions = directions
         self.population = agent_schemas.populacao

@@ -2,8 +2,8 @@ from .agent import Agent
 import random
 
 class Agent1(Agent):
-    def __init__(self, tag: str, position:tuple[int, int]):
-        super().__init__(tag, position)
+    def __init__(self, id_: int, position:tuple[int, int]):
+        super().__init__(id_, position)
         self.type = 0
 
     def execute(self, data_position: dict) -> str:
