@@ -27,23 +27,19 @@ class Agent3(Agent):
         self.fitness_expression = agent_schemas.fitness
 
     def generate_genes(self, amount: int, max_size: int) -> list[dict]:
+        directions = list(self.directions.keys())
         genes = []
         for _ in range(amount):
-            gene = {
-                'chromosome': [],
-                'result': [],
-                'pts': 0,
-            }
-
             gene_size = random.randint(2, max_size)
 
-            for _ in range(gene_size):
-                action = random.choice(list(self.directions.keys()))
-                if random.random() < 0.1:
-                    gene['chromosome'].append(action.lower())
-                else:
-                    gene['chromosome'].append(action)
-            genes.append(gene)
+            actions = random.choices(directions, k=gene_size)
+            chromosome = [a.lower() if random.random() < 0.1 else a for a in actions]
+            
+            genes.append({
+                'chromosome': chromosome,
+                'result': [],
+                'pts': 0,
+            })
         
         return genes
  
