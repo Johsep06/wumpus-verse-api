@@ -29,6 +29,7 @@ class Agent3(Agent):
     def generate_genes(self, amount: int, max_size: int) -> list[dict]:
         directions = list(self.directions.keys())
         genes = []
+
         for _ in range(amount):
             gene_size = random.randint(2, max_size)
 
@@ -45,7 +46,7 @@ class Agent3(Agent):
  
     def evaluate_gene(self, gene:dict):
         position = (self.start_position[0], self.start_position[1])
-        map_temp = deepcopy(self.map)
+        map_temp = self.map.copy()
         result = []
         gold_colected = 0
         for chromosome in gene['chromosome']:
@@ -109,6 +110,8 @@ class Agent3(Agent):
         gene['pts'] = fitness_function(values)
 
     def intersection(self, max_size:int, gene_a:dict, gene_b:dict):
+        directions = list(self.directions.keys())
+        
         cut_a = random.randint(1, (len(gene_a['chromosome']) - 1))
         cut_b = random.randint(1, (len(gene_b['chromosome']) - 1))
 
@@ -128,7 +131,7 @@ class Agent3(Agent):
         }
         for i in range(len(new_gene['chromosome'])):
             if random.random() < self.mutation_rate:
-                new_gene['chromosome'][i] = random.choice(list(self.directions.keys()))
+                new_gene['chromosome'][i] = random.choice(directions)
         
         return new_gene
 
@@ -141,15 +144,31 @@ class Agent3(Agent):
         
         genes.sort(key=lambda g: g['pts'], reverse=True)
         
+        son_1 = self.intersection(
+            int(len(self.map)*2),
+            genes[0],
+            genes[1],
+        )
+        son_2 = self.intersection(
+            int(len(self.map)*2),
+            genes[1],
+            genes[0],
+        )
+        self.evaluate_gene(son_1)
+        self.fitness(son_1)
+        genes.append(son_1)
+        self.evaluate_gene(son_2)
+        self.fitness(son_2)
+        genes.append(son_2)
+        
         for generation in range(self.generations):
             number_of_crossings = max(1, int(self.population*self.crossing_rate))
             number_of_crossings = number_of_crossings if number_of_crossings % 2 == 0 else number_of_crossings + 1
             
-            # for i in range(int(number_of_crossings/2)):
-            for _ in range(0, number_of_crossings):
+            for i in range(2, number_of_crossings):
                 try:
-                    gene_1 = random.choice(genes)
-                    gene_2 = random.choice(genes)
+                    gene_1 = genes[i % 2]
+                    gene_2 = genes[i]
                     son_1 = self.intersection(
                         int(len(self.map)*2),
                         gene_1,
