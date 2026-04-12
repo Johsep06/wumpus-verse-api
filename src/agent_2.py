@@ -55,6 +55,18 @@ class Agent2(Agent):
 
         return False
 
+    def only_one_possible_goal(self):
+        has_safe_room = self.memory.has_in_memory(self.position, Cell.UNKNOW, True)
+        has_danger_room = self.memory.has_in_memory(self.position, Cell.UNKNOW, False)
+        
+        one_goal = self.gold > 0 or self.kills > 0
+        there_are_no_rooms = (has_safe_room and has_danger_room)
+        
+        if one_goal and there_are_no_rooms:
+            return True
+
+        return False
+
     def update_memory(self, has_stink: bool, has_breeze:bool, has_shine:bool):
         if has_stink and has_breeze:
             self.memory.suspect_cells(self.position, 'w_h')
@@ -110,7 +122,6 @@ class Agent2(Agent):
         return gold_path
 
     def calculate_wumpus_route(self, wumpus_position:tuple[int, int]):
-        print(self.memory.cells[wumpus_position])
         wumpus_path = a_star(
             self.position,
             wumpus_position,
@@ -152,7 +163,7 @@ class Agent2(Agent):
         has_arrow = self.arrows > 0
 
         if (self.memory_status() and self.inventory_status()) or \
-        (not has_safe_room and not has_danger_room):
+        self.only_one_possible_goal():
             exit_position = self.memory.search_position(self.position, Cell.EXIT)
             self.action_queue = self.calculate_secure_route(exit_position[1:])
 
