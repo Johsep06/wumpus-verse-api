@@ -16,7 +16,6 @@ from .environment_response import EnvironmentResponseSchemas
 from .turn import TurnSchemas
 from .agent_data import AgentDataSchemas
 from .third_agent import ThirdAgentSchemas
-from .agent_db import AgentDBSchemas
 from .second_agent import SecondAgentSchemas
 from .execution_db import ExecutionDBSchemas
 from .agent import AgentSchemas
@@ -41,7 +40,6 @@ __all__ = [
     'AgentDataSchemas',
     'AgentSchemas',
     'ThirdAgentSchemas',
-    'AgentDBSchemas',
     'SecondAgentSchemas',
     'ExecutionDBSchemas',
 ]
