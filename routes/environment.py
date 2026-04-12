@@ -396,79 +396,44 @@ async def execution(
     for data in agents_data:
         agent: Agent = None
 
-        if data.type == 0 and data.id == 0:
-            agent = Agent1(str(data.id), (data.position_y, data.position_x))
-        elif data.type == 1 and data.id == 0:
-            agent = Agent1(str(data.id), (data.position_y, data.position_x))
-        elif data.type == 2 and data.id == 0:
+        agent_db = session.query(AgentDB) \
+            .filter(AgentDB.id == data.id) \
+            .first()
+
+        if not agent_db:
+            return HTTPException(status_code=404, detail='Agente não encontrado')
+        
+        if agent_db.tipo == 1:
+            agent = Agent1(data.id, (data.position_y, data.position_x))
+        elif agent_db.tipo == 2:
             second_agent_data = session.query(SecondAgentDB) \
-                .filter(SecondAgentDB.id == 2) \
+                .filter(SecondAgentDB.id == agent_db.id) \
                 .first()
-                
+            
             second_agent = build_second_agent_schemas(
                 second_agent_data
             )
             agent = Agent2(
-                str(data.id),
+                data.id,
                 (data.position_y, data.position_x),
                 enviroment.directions,
                 second_agent
             )
-        elif data.type == 3 and data.id == 0:
+        elif agent_db.tipo == 3:
             third_agent_data = session.query(ThirdAgentDB) \
-                .filter(ThirdAgentDB.agent_id == 3) \
+                .filter(ThirdAgentDB.agent_id == agent_db.id) \
                 .first()
             
             third_agent = build_third_agent_schemas(
                 third_agent_data
             )
             agent = Agent3(
-                str(data.id),
+                data.id,
                 (data.position_y, data.position_x),
                 enviroment.directions,
                 enviroment.get_map(),
                 third_agent,
             )
-        
-        else:
-            agent_db = session.query(AgentDB) \
-                .filter(AgentDB.id == data.id) \
-                .first()
-
-            if not agent_db:
-                return HTTPException(status_code=404, detail='Agente não encontrado')
-            
-            if agent_db.tipo == 1:
-                agent = Agent1(str(data.id), (data.position_y, data.position_x))
-            elif agent_db.tipo == 2:
-                second_agent_data = session.query(SecondAgentDB) \
-                    .filter(SecondAgentDB.id == agent_db.id) \
-                    .first()
-                
-                second_agent = build_second_agent_schemas(
-                    second_agent_data
-                )
-                agent = Agent2(
-                    str(data.id),
-                    (data.position_y, data.position_x),
-                    enviroment.directions,
-                    second_agent
-                )
-            elif agent_db.tipo == 3:
-                third_agent_data = session.query(ThirdAgentDB) \
-                    .filter(ThirdAgentDB.agent_id == agent_db.id) \
-                    .first()
-                
-                third_agent = build_third_agent_schemas(
-                    third_agent_data
-                )
-                agent = Agent3(
-                    str(data.id),
-                    (data.position_y, data.position_x),
-                    enviroment.directions,
-                    enviroment.get_map(),
-                    third_agent,
-                )
                 
                 
 
