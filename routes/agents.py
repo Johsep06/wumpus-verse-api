@@ -54,6 +54,8 @@ async def home(
 
     end_of_list = (offset + limit) >= len(agents_list)
     agents.append(end_of_list)
+    
+    return agents
 
 
 @agents_router.post('/user')
