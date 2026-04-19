@@ -3,3 +3,4 @@ __pycache__/
 aa*
 .env
 firebaseKey.json
+*.json

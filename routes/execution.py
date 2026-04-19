@@ -108,12 +108,15 @@ async def delete_execution(
     execution_data = session.query(ExecutionDB) \
         .filter(ExecutionDB.id == execution_id) \
         .first()
-    
+
     if execution_data is None:
         raise HTTPException(status_code=404, detail='Execução não encontrada')
     if user_schemas.id != execution_data.user_id:
-        raise HTTPException(status_code=403, detail='O usuário não tem permisão para realizar essa ação')
-    
+        raise HTTPException(
+            status_code=403,
+            detail='O usuário não tem permisão para realizar essa ação'
+        )
+
     session.delete(execution_data)
     session.commit()
     return {
@@ -131,11 +134,9 @@ async def user_excutions(
     session: Session = Depends(get_session),
     user_schemas: UserSchemas = Depends(check_token),
 ):
-    
+
     offset = (page - 1) * limit
-    
-    # execution: list[ExecutionDB] = None
-    
+
     if agent_id != 0 and enviroment_id != 0:
         execution = session.query(ExecutionDB) \
             .filter(ExecutionDB.id_ambiente == enviroment_id) \
@@ -155,16 +156,15 @@ async def user_excutions(
         execution = session.query(ExecutionDB) \
             .filter(ExecutionDB.user_id == user_schemas.id) \
             .offset(offset)
-    
+
     if execution is None:
         raise HTTPException(
             status_code=404,
             detail='Não foram encontradas execuções que atendam ao padrão de busca informado'
         )
-    
+
     executions = []
     for execution_db in execution:
         executions.append(prepare_execution(execution_db))
 
-    
     return executions
