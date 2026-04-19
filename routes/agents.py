@@ -54,7 +54,7 @@ async def home(
 
     end_of_list = (offset + limit) >= len(agents_list)
     agents.append(end_of_list)
-    
+
     return agents
 
 
@@ -87,10 +87,13 @@ async def new_agent(
 
     elif agent_type == 3:
         fitness_is_valid = validate_fitness(
-            third_agent_schemas.fitness.replace(' ', ''))
+            third_agent_schemas.fitness.replace(' ', '')
+        )
         if not fitness_is_valid:
             raise HTTPException(
-                status_code=400, detail='Função fitness inválida')
+                status_code=400,
+                detail='Função fitness inválida'
+            )
         third_agent = build_third_agent_record(
             agent.id,
             third_agent_schemas
@@ -115,7 +118,10 @@ async def get_agent(
         .first()
 
     if agent_data is None:
-        raise HTTPException(status_code=404, detail='Agente não encontrado')
+        raise HTTPException(
+            status_code=404,
+            detail='Agente não encontrado'
+        )
 
     agent = build_agent_schemas(agent_data)
     if agent_data.tipo == 2:
@@ -148,10 +154,14 @@ async def update_agent(
 
     if agent is None:
         raise HTTPException(
-            status_code=404, detail='O agente não existe no banco de dados')
+            status_code=404,
+            detail='O agente não existe no banco de dados'
+        )
     if user_schemas.id != agent.user_id:
         raise HTTPException(
-            status_code=403, detail='O usuário não tem permisão para realizar essa ação')
+            status_code=403,
+            detail='O usuário não tem permisão para realizar essa ação'
+        )
 
     agent.nome = name
     if agent.tipo == 2:
@@ -166,8 +176,9 @@ async def update_agent(
         properties.forma_de_busca = second_agent_schemas.forma_de_busca
 
     elif agent.tipo == 3:
-        properties = session.query(ThirdAgentDB).filter(
-            ThirdAgentDB.agent_id == agent_id).first()
+        properties = session.query(ThirdAgentDB) \
+            .filter(ThirdAgentDB.agent_id == agent_id) \
+            .first()
 
         properties.populacao = third_agent_schemas.populacao
         properties.geracoes = third_agent_schemas.geracoes
@@ -192,10 +203,14 @@ async def delete_agent(
 
     if agent is None:
         raise HTTPException(
-            status_code=404, detail='O agente não existe no banco de dados')
+            status_code=404,
+            detail='O agente não existe no banco de dados'
+        )
     if user_schemas.id != agent.user_id:
         raise HTTPException(
-            status_code=403, detail='O usuário não tem permisão para realizar essa ação')
+            status_code=403,
+            detail='O usuário não tem permisão para realizar essa ação'
+        )
 
     session.delete(agent)
     session.commit()
