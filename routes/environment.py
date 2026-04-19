@@ -48,7 +48,9 @@ async def home(
     environments = []
 
     for id_ in ids_enviroments:
-        environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == id_).first()
+        environment = session.query(EnvironmentDb) \
+            .filter(EnvironmentDb.id == id_) \
+            .first()
         environments.append(get_environment_summary(environment))
 
     end_of_list = (offset + limit) >= len(ids_enviroments_list)
@@ -67,7 +69,9 @@ async def environment_by_id(environment_id: int, session: Session = Depends(get_
     Returns:
         EnvironmentSchemas: padrão de dados para o ambiente
     '''
-    environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == environment_id).first()
+    environment = session.query(EnvironmentDb) \
+        .filter(EnvironmentDb.id == environment_id) \
+        .first()
 
     if environment is None:
         raise HTTPException(status_code=404, detail='Ambiente não encontrado')
@@ -78,7 +82,9 @@ async def environment_by_id(environment_id: int, session: Session = Depends(get_
     entities = session.query(RoomObject.posicao_x, RoomObject.posicao_y, RoomObject.objeto_id) \
         .filter(RoomObject.ambiente_id == environment_id) \
         .all()
-    rooms = session.query(RoomDb).filter(RoomDb.ambiente_id == environment_id).all()
+    rooms = session.query(RoomDb) \
+        .filter(RoomDb.ambiente_id == environment_id) \
+        .all()
     environment_rooms = get_rooms(entities, rooms)
 
     return EnvironmentSchemas(
@@ -167,14 +173,25 @@ async def update_environment(
     user_schemas: UserSchemas = Depends(check_token),
     session: Session = Depends(get_session),
 ):
-    environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == environment_id).first()
+    environment = session.query(EnvironmentDb) \
+        .filter(EnvironmentDb.id == environment_id) \
+        .first()
     if environment is None:
         raise HTTPException(status_code=404, detail="Ambiente não encontrado")
     if environment.usuario_id != user_schemas.id:
-        raise HTTPException(status_code=403, detail="O usuário não tem permissão para realizar essa operação")
+        raise HTTPException(
+            status_code=403,
+            detail="O usuário não tem permissão para realizar essa operação"
+        )
 
-    session.execute(delete(RoomObject).where(RoomObject.ambiente_id == environment_id))
-    session.execute(delete(RoomDb).where(RoomDb.ambiente_id == environment_id))
+    session.execute(
+        delete(RoomObject)
+        .where(RoomObject.ambiente_id == environment_id)
+    )
+    session.execute(
+        delete(RoomDb)
+        .where(RoomDb.ambiente_id == environment_id)
+    )
 
     environment.nome = updated_environment.nome
     environment.largura = updated_environment.largura
@@ -234,11 +251,16 @@ async def delete_environment(
         dict: mensagem de sucesso
     '''
 
-    environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == environment_id).first()
+    environment = session.query(EnvironmentDb) \
+        .filter(EnvironmentDb.id == environment_id) \
+        .first()
     if environment is None:
         raise HTTPException(status_code=404, detail="Ambiente não encontrado")
     if environment.usuario_id != user_schemas.id:
-        raise HTTPException(status_code=403, detail="O usuário não tem permissão para realizar essa operação")
+        raise HTTPException(
+            status_code=403,
+            detail="O usuário não tem permissão para realizar essa operação",
+        )
 
     session.delete(environment)
     session.commit()
@@ -272,7 +294,8 @@ async def user_environments(
     environments = []
 
     for id_ in ids_enviroments:
-        environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == id_).first()
+        environment = session.query(EnvironmentDb).filter(
+            EnvironmentDb.id == id_).first()
         environments.append(get_environment_summary(environment))
 
     end_of_list = (offset + limit) >= len(ids_enviroments_list)
@@ -282,21 +305,25 @@ async def user_environments(
 
 @environment_router.get('/mini-map')
 async def get_mini_mapa(environment_id: int, session: Session = Depends(get_session)) -> list[RoomSchemas]:
-    environment = session.query(EnvironmentDb).filter(EnvironmentDb.id == environment_id).first()
+    environment = session.query(EnvironmentDb) \
+        .filter(EnvironmentDb.id == environment_id) \
+        .first()
     if environment is None:
         raise HTTPException(status_code=404, detail='Ambiente não encontrado')
 
     entities = session.query(RoomObject.posicao_x, RoomObject.posicao_y, RoomObject.objeto_id) \
         .filter(RoomObject.ambiente_id == environment_id) \
         .all()
-    rooms = session.query(RoomDb).filter(RoomDb.ambiente_id == environment_id).all()
+    rooms = session.query(RoomDb) \
+        .filter(RoomDb.ambiente_id == environment_id) \
+        .all()
     environment_rooms = get_rooms(entities, rooms)
 
     return environment_rooms
 
 
 @environment_router.post('/execution')
-async def execution(    
+async def execution(
     environment_id: int,
     diagonal_movement: bool,
     agents_data: list[AgentDataSchemas],
@@ -305,7 +332,9 @@ async def execution(
     entities = session.query(RoomObject.posicao_x, RoomObject.posicao_y, RoomObject.objeto_id) \
         .filter(RoomObject.ambiente_id == environment_id) \
         .all()
-    rooms_db = session.query(RoomDb).filter(RoomDb.ambiente_id == environment_id).all()
+    rooms_db = session.query(RoomDb) \
+        .filter(RoomDb.ambiente_id == environment_id) \
+        .all()
     rooms = get_rooms(entities, rooms_db)
     enviroment = Environment(
         id_=environment_id,
@@ -321,15 +350,18 @@ async def execution(
             .first()
 
         if not agent_db:
-            raise HTTPException(status_code=404, detail='Agente não encontrado')
-        
+            raise HTTPException(
+                status_code=404,
+                detail='Agente não encontrado',
+            )
+
         if agent_db.tipo == 1:
             agent = Agent1(data.id, (data.position_y, data.position_x))
         elif agent_db.tipo == 2:
             second_agent_data = session.query(SecondAgentDB) \
                 .filter(SecondAgentDB.id == agent_db.id) \
                 .first()
-            
+
             second_agent = build_second_agent_schemas(
                 second_agent_data
             )
@@ -343,7 +375,7 @@ async def execution(
             third_agent_data = session.query(ThirdAgentDB) \
                 .filter(ThirdAgentDB.agent_id == agent_db.id) \
                 .first()
-            
+
             third_agent = build_third_agent_schemas(
                 third_agent_data
             )
@@ -354,8 +386,6 @@ async def execution(
                 enviroment.get_map(),
                 third_agent,
             )
-                
-                
 
         enviroment.add_agent(agent)
 
