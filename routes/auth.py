@@ -16,7 +16,6 @@ auth_router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
 def format_token_response(email: str, name: str, id_token):
-
     token_response = TokenSchemas(
         access_token=id_token,
         token_type="bearer",
@@ -31,7 +30,6 @@ def format_token_response(email: str, name: str, id_token):
 
 
 def authenticate_firebase_user(password: str, email: str):
-    # 1. Autenticar com Firebase REST API
     auth_payload = {
         "email": email,
         "password": password,
@@ -46,8 +44,9 @@ def authenticate_firebase_user(password: str, email: str):
     auth_result = response.json()
 
     if response.status_code != 200:
-        error_message = auth_result.get('error', {}).get(
-            'message', 'Erro de autenticação')
+        error_message = auth_result \
+            .get('error', {}) \
+            .get('message', 'Erro de autenticação')
         print(f"❌ Erro de autenticação: {error_message}")
 
         if "INVALID_LOGIN_CREDENTIALS" in error_message:
@@ -102,11 +101,13 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
         print(f"📝 Tentativa de registro para: {user_data.email}")
 
         user = session.query(User).filter(User.usuario == user_data.name)
-        
+
         if user is None:
-            raise HTTPException(status_code=409, detail=f"Já existe um usuário com o nome {user_data.name}")
-        
-        # 1. Criar usuário no Firebase Authentication
+            raise HTTPException(
+                status_code=409,
+                detail=f"Já existe um usuário com o nome {user_data.name}"
+            )
+
         user = firebase_auth.create_user(
             email=user_data.email,
             password=user_data.password,
@@ -127,16 +128,18 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
             'role': 'user'
         }
 
-        # db.collection('users').document(user.uid).set(user_profile)
         new_user = User(email=user_data.email, usuario=user_data.name)
         session.add(new_user)
         session.commit()
         print(f"💾 (SIMULADO) Perfil salvo no Firestore: {user.uid}")
 
-        _, id_token = authenticate_firebase_user(user_data.password, user_data.email)
+        _, id_token = authenticate_firebase_user(
+            user_data.password,
+            user_data.email,
+        )
         token_response = format_token_response(
-            id_token=id_token, 
-            email=user_data.email, 
+            id_token=id_token,
+            email=user_data.email,
             name=user_data.name
         )
 
@@ -192,12 +195,15 @@ async def login(login_data: UserLoginSchemas, session: Session = Depends(get_ses
         print(f"🔐 Tentativa de login para: {login_data.email}")
 
         firebase_uid, firebase_id_token = authenticate_firebase_user(
-            login_data.password, login_data.email)
+            login_data.password,
+            login_data.email,
+        )
 
         print(f"✅ Login bem-sucedido para: {firebase_uid}")
 
-        user = session.query(User).filter(
-            User.email == login_data.email).first()
+        user = session.query(User) \
+            .filter(User.email == login_data.email) \
+            .first()
 
         token_response = format_token_response(
             id_token=firebase_id_token,
@@ -222,23 +228,25 @@ async def login(login_data: UserLoginSchemas, session: Session = Depends(get_ses
 async def delete_user(
     session: Session = Depends(get_session),
     token: UserSchemas = Depends(check_token)
-    ):
+):
     try:
         delete_user_firebase(token.email, token.uid)
-        user = session.query(User).filter(User.email == token.email).first()
+        user = session.query(User) \
+            .filter(User.email == token.email) \
+            .first()
 
         email = user.email
         name = user.usuario
-        
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Usuário não encontrado"
             )
-        
+
         session.delete(user)
         session.commit()
-        
+
         return {
             "message": "Usuário deletado com sucesso",
             "email": email,
@@ -257,17 +265,22 @@ async def delete_user(
             detail=f"Erro interno ao deletar usuário: {str(e)}"
         )
 
+
 @auth_router.post("/login-form", response_model=TokenSchemas)
 async def login_form(login_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
     try:
         print(f"🔐 Tentativa de login para: {login_data.username}")
 
         firebase_uid, firebase_id_token = authenticate_firebase_user(
-            login_data.password, login_data.username)
+            login_data.password,
+            login_data.username,
+        )
 
         print(f"✅ Login bem-sucedido para: {firebase_uid}")
 
-        user = session.query(User).filter(User.email == login_data.username).first()
+        user = session.query(User) \
+            .filter(User.email == login_data.username) \
+            .first()
 
         token_response = format_token_response(
             id_token=firebase_id_token,
