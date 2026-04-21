@@ -12,6 +12,7 @@ OBJECTS_DATABASE_IDS = {
     'O': 3,
 }
 
+
 def get_number_entities(environment: EnvironmentDb) -> NumberEntitiesSchemas:
     return NumberEntitiesSchemas(
         wumpus=environment.wumpus,
@@ -43,7 +44,8 @@ def get_environments_statics(environment: EnvironmentDb) -> EnviromentsStaticsSc
         salasAtivas=number_of_rooms,
         salasInativas=environment_area - number_of_rooms,
         quantidadeEntidades=number_of_entities,
-        densidadeEntidades=get_entity_desity(number_of_rooms, number_of_entities)
+        densidadeEntidades=get_entity_desity(
+            number_of_rooms, number_of_entities)
     )
 
 

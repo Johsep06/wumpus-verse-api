@@ -8,7 +8,7 @@ SecondAgentDB = Base.classes.segundo_agente
 ThirdAgentDB = Base.classes.terceiro_agente
 
 
-def build_agent_record(user_id:int, nome:str, data:datetime, tipo:int):
+def build_agent_record(user_id: int, nome: str, data: datetime, tipo: int):
     agent_db = AgentDB(
         user_id=user_id,
         nome=nome,
