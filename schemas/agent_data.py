@@ -1,6 +1,4 @@
 from pydantic import BaseModel
-from .second_agent import SecondAgentSchemas
-from .third_agent import ThirdAgentSchemas
 
 
 class AgentDataSchemas(BaseModel):

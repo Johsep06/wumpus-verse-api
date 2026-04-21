@@ -17,7 +17,6 @@ class EnvironmentSchemas(BaseModel):
 
     @field_serializer('data_criacao')
     def serialize_criado_em(self, dt: Optional[datetime], _info):
-        # Verifica se dt não é None antes de formatar
         if dt is not None:
             return dt.strftime("%Y-%m-%d %H:%M:%S")
-        return None  # ou return dt (que seria None)
+        return None

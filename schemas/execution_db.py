@@ -15,5 +15,5 @@ class ExecutionDBSchemas(BaseModel):
     qtd_wumpus: int
     pontos: int
     data: datetime
-    qtd_passos:int
+    qtd_passos: int
     historico: List[str]
