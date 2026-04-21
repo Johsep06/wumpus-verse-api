@@ -2,7 +2,7 @@ from .config import initialize_firebase, firebase_auth, firestore_db, db, except
 
 __all__ = [
     'initialize_firebase',
-    'firebase_auth', 
+    'firebase_auth',
     'firestore_db',
     'db',
     'exceptions',
