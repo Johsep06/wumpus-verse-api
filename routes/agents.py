@@ -169,10 +169,10 @@ async def update_agent(
             .filter(SecondAgentDB.id == agent_id) \
             .first()
 
-        properties.corajoso = second_agent_schemas.corajoso
+        properties.coragem = second_agent_schemas.corajoso
         properties.explorador = second_agent_schemas.explorador
-        properties.cacador = second_agent_schemas.cacador
-        properties.garimpeiro = second_agent_schemas.garimpeiro
+        properties.assassino = second_agent_schemas.cacador
+        properties.busca_ouro = second_agent_schemas.garimpeiro
         properties.forma_de_busca = second_agent_schemas.forma_de_busca
 
     elif agent.tipo == 3:
@@ -183,6 +183,7 @@ async def update_agent(
         properties.populacao = third_agent_schemas.populacao
         properties.geracoes = third_agent_schemas.geracoes
         properties.taxa_de_cruzamento = third_agent_schemas.taxa_de_cruzamento
+        properties.taxa_de_mutacao = third_agent_schemas.taxa_de_mutacao
         properties.fitness = third_agent_schemas.fitness
 
     session.commit()
