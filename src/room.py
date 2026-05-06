@@ -17,15 +17,15 @@ class Room:
             index = self.perceptions.index(perception)
             self.perceptions[index] = perception.lower()
 
-    def add_entity(self, entity:str):
+    def add_entity(self, entity: str):
         self.entities.append(entity)
 
-    def hide_entity(self, entity:str):
+    def hide_entity(self, entity: str):
         if entity in self.entities:
             index = self.entities.index(entity)
             self.entities[index] = entity.lower()
-    
-    def reveal_entity(self, entity:str):
+
+    def reveal_entity(self, entity: str):
         if entity in self.entities:
             index = self.entities.index(entity)
             self.entities[index] = entity.upper()

@@ -1,20 +1,22 @@
 from .agent import Agent
 import random
 
+
 class Agent1(Agent):
-    def __init__(self, id_: int, position:tuple[int, int]):
+    def __init__(self, id_: int, position: tuple[int, int]):
         super().__init__(id_, position)
         self.type = 0
 
     def execute(self, data_position: dict) -> str:
         choice = random.choice(data_position['directions'])
-        shot = random.randint(0,1)
+        shot = random.randint(0, 1)
         if 'br' in data_position['perception']:
             return 'x'
         if ('f' in data_position['perception']) and \
             (self.arrows > 0) and \
             (shot == 0):
+            
             self.arrows -= 1
             choice = choice.lower()
-        
+
         return choice

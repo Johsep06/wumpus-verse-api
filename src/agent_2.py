@@ -43,8 +43,16 @@ class Agent2(Agent):
         return False
 
     def memory_status(self):
-        has_safe_room = self.memory.has_in_memory(self.position, Cell.UNKNOW, True)
-        has_danger_room = self.memory.has_in_memory(self.position, Cell.UNKNOW, False)
+        has_safe_room = self.memory.has_in_memory(
+            self.position,
+            Cell.UNKNOW,
+            True
+        )
+        has_danger_room = self.memory.has_in_memory(
+            self.position,
+            Cell.UNKNOW,
+            False
+        )
 
         if not self.properties.explorador:
             return True
@@ -56,18 +64,26 @@ class Agent2(Agent):
         return False
 
     def only_one_possible_goal(self):
-        has_safe_room = self.memory.has_in_memory(self.position, Cell.UNKNOW, True)
-        has_danger_room = self.memory.has_in_memory(self.position, Cell.UNKNOW, False)
-        
+        has_safe_room = self.memory.has_in_memory(
+            self.position,
+            Cell.UNKNOW,
+            True
+        )
+        has_danger_room = self.memory.has_in_memory(
+            self.position,
+            Cell.UNKNOW,
+            False
+        )
+
         one_goal = self.gold > 0 or self.kills > 0
         there_are_no_rooms = (has_safe_room and has_danger_room)
-        
+
         if one_goal and there_are_no_rooms:
             return True
 
         return False
 
-    def update_memory(self, has_stink: bool, has_breeze:bool, has_shine:bool):
+    def update_memory(self, has_stink: bool, has_breeze: bool, has_shine: bool):
         if has_stink and has_breeze:
             self.memory.suspect_cells(self.position, 'w_h')
         elif has_stink:
@@ -80,7 +96,7 @@ class Agent2(Agent):
         if has_shine:
             self.memory.mark_memory(self.position, 'G')
 
-    def calculate_secure_route(self, secure_position:tuple[int, int]):
+    def calculate_secure_route(self, secure_position: tuple[int, int]):
         secure_pah = a_star(
             self.position,
             secure_position,
@@ -88,10 +104,10 @@ class Agent2(Agent):
             [Cell.WUMPUS, Cell.HOLE, 'danger'],
             self.memory.directions
         )
-        
+
         return secure_pah
-    
-    def calculate_danger_route(self, danger_position:tuple[int, int], shot:bool = False):
+
+    def calculate_danger_route(self, danger_position: tuple[int, int], shot: bool = False):
         danger_path = a_star(
             self.position,
             danger_position,
@@ -108,7 +124,7 @@ class Agent2(Agent):
 
         return danger_path
 
-    def calculate_gold_route(self, gold_position:tuple[int, int]):
+    def calculate_gold_route(self, gold_position: tuple[int, int]):
         gold_path = a_star(
             self.position,
             gold_position,
@@ -121,7 +137,7 @@ class Agent2(Agent):
         self.memory.cells[gold_position].objetcs.discard(Cell.GOLD)
         return gold_path
 
-    def calculate_wumpus_route(self, wumpus_position:tuple[int, int]):
+    def calculate_wumpus_route(self, wumpus_position: tuple[int, int]):
         wumpus_path = a_star(
             self.position,
             wumpus_position,
@@ -129,10 +145,10 @@ class Agent2(Agent):
             [Cell.HOLE, 'danger'],
             self.memory.directions
         )
-        
+
         shot_direction = wumpus_path.pop()
         wumpus_path.append(shot_direction.lower())
-        
+
         self.memory.cells[wumpus_position].objetcs.discard(Cell.WUMPUS)
         if not self.memory.cells[wumpus_position].objetcs:
             self.memory.cells[wumpus_position].add_object(Cell.KNOW)
@@ -156,40 +172,63 @@ class Agent2(Agent):
                 self.arrows -= 1
             return self.action_queue.pop(0)
 
-        has_gold = self.memory.has_in_memory(self.position, Cell.GOLD, True)
-        has_wumpus = self.memory.has_in_memory(self.position, Cell.WUMPUS, False)
-        has_safe_room = self.memory.has_in_memory(self.position, Cell.UNKNOW, True)
-        has_danger_room = self.memory.has_in_memory(self.position, Cell.UNKNOW, False)
+        has_gold = self.memory \
+            .has_in_memory(self.position, Cell.GOLD, True)
+        has_wumpus = self.memory \
+            .has_in_memory(self.position, Cell.WUMPUS, False)
+        has_safe_room = self.memory \
+            .has_in_memory(self.position, Cell.UNKNOW, True)
+        has_danger_room = self.memory \
+            .has_in_memory(self.position, Cell.UNKNOW, False)
         has_arrow = self.arrows > 0
 
         if (self.memory_status() and self.inventory_status()) or \
-        self.only_one_possible_goal():
-            exit_position = self.memory.search_position(self.position, Cell.EXIT)
+                self.only_one_possible_goal():
+            exit_position = self.memory.search_position(
+                self.position,
+                Cell.EXIT
+            )
             self.action_queue = self.calculate_secure_route(exit_position[1:])
 
         elif has_gold and \
-            has_wumpus and \
-            (self.properties.cacador == self.properties.garimpeiro):
+                has_wumpus and \
+                (self.properties.cacador == self.properties.garimpeiro):
 
-            gold_position = self.memory.search_position(self.position, Cell.GOLD, True)
-            wumpus_position = self.memory.search_position(self.position, Cell.WUMPUS)
+            gold_position = self.memory \
+                .search_position(self.position, Cell.GOLD, True)
+            wumpus_position = self.memory \
+                .search_position(self.position, Cell.WUMPUS)
 
             if gold_position[0] > wumpus_position[0]:
-                self.action_queue = self.calculate_gold_route(gold_position[1:])
+                self.action_queue = self.calculate_gold_route(
+                    gold_position[1:]
+                )
             elif (gold_position[0] < wumpus_position[0]) and has_arrow:
-                self.action_queue = self.calculate_wumpus_route(wumpus_position[1:])
+                self.action_queue = self.calculate_wumpus_route(
+                    wumpus_position[1:]
+                )
             elif has_arrow:
-                self.action_queue = self.calculate_wumpus_route(wumpus_position[1:])
+                self.action_queue = self.calculate_wumpus_route(
+                    wumpus_position[1:]
+                )
             else:
-                self.action_queue = self.calculate_gold_route(gold_position[1:])
+                self.action_queue = self.calculate_gold_route(
+                    gold_position[1:]
+                )
 
         elif has_wumpus and self.properties.cacador and has_arrow:
-            wumpus_position = self.memory.search_position(self.position, Cell.WUMPUS)
-            self.action_queue = self.calculate_wumpus_route(wumpus_position[1:])
+            wumpus_position = self.memory  \
+                .search_position(self.position, Cell.WUMPUS)
+            self.action_queue = self.calculate_wumpus_route(
+                wumpus_position[1:]
+            )
 
         elif has_gold and self.properties.garimpeiro:
-            gold_position = self.memory.search_position(self.position, Cell.GOLD, True)
-            self.action_queue = self.calculate_gold_route(gold_position[1:])
+            gold_position = self.memory \
+                .search_position(self.position, Cell.GOLD, True)
+            self.action_queue = self.calculate_gold_route(
+                gold_position[1:]
+            )
 
         elif has_safe_room:
             safe_position = self.memory.search_position(self.position, Cell.UNKNOW, True)
@@ -198,7 +237,7 @@ class Agent2(Agent):
         elif has_danger_room and self.properties.corajoso:
             shot = True
             danger_position = self.memory.search_suspect_position(
-                self.position, 
+                self.position,
                 Cell.HOLE_AND_WUMPUS_SUSPECT
             )
             if danger_position is None:
@@ -213,7 +252,8 @@ class Agent2(Agent):
                 )
                 shot = False
 
-            self.action_queue = self.calculate_danger_route(danger_position[1:], shot)
+            self.action_queue = self.calculate_danger_route(
+                danger_position[1:], shot)
         else:
             random_position = self.memory.random_position(self.position)
             self.action_queue = self.calculate_secure_route(random_position)

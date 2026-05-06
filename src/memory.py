@@ -166,7 +166,7 @@ class Memory:
 
         return position
 
-    def has_in_memory(self, start_position:tuple[int, int], value:str, is_safe:bool):
+    def has_in_memory(self, start_position: tuple[int, int], value: str, is_safe: bool):
         for position in self.cells:
             if position == start_position:
                 continue
@@ -174,6 +174,6 @@ class Memory:
                 continue
             if value not in self.cells[position].objetcs:
                 continue
-            
+
             return True
         return False

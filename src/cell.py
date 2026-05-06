@@ -30,7 +30,7 @@ class Cell:
             self.suspects.clear()
 
         self._is_safe = value
-    
+
     def __repr__(self):
         return f'<Cell safe:{self._is_safe}, obj:{self.objetcs}, susp:{self.suspects}>'
 
@@ -38,7 +38,7 @@ class Cell:
         #! Lembrar de retornar um erro caso o objeto seja inválido
         if object_ != self.UNKNOW:
             self.suspects.clear()
-        
+
         if len(self.objetcs) == 0:
             self.objetcs.add(object_)
             return True
@@ -61,9 +61,9 @@ class Cell:
 
         elif object_ == self.KNOW:
             return False
-        
+
         elif object_ == self.EXIT:
-            self.is_safe = True 
+            self.is_safe = True
             return True
 
         else:
@@ -74,10 +74,10 @@ class Cell:
         is_hole = suspect == self.HOLE_SUSPECT
         is_wumpus = suspect == self.WUMPUS_SUSPECT
         is_hole_and_wumpus = suspect == self.HOLE_AND_WUMPUS_SUSPECT
-        
+
         if not (is_hole or is_wumpus or is_hole_and_wumpus):
             raise ValueError('o valor informado não é valido')
-        
+
         if self._is_safe:
             return True
 

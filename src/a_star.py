@@ -92,7 +92,11 @@ def a_star(
                 f_score[new_position] = new_f_score
                 g_score[new_position] = new_g_score
 
-                item = (new_f_score, __h_score(new_position, stop), new_position)
+                item = (
+                    new_f_score, 
+                    __h_score(new_position, stop), 
+                    new_position
+                )
                 queue.put(item)
                 path[new_position] = position
 
@@ -103,7 +107,11 @@ def a_star(
         final_path[path[analyzed_position]] = analyzed_position
         analyzed_position = path[analyzed_position]
 
-    route = __convert_into_directions(start, final_path, reverse_dict_directions(directions))
+    route = __convert_into_directions(
+        start, 
+        final_path, 
+        reverse_dict_directions(directions)
+    )
     return route
 
 
@@ -114,8 +122,9 @@ if __name__ == '__main__':
         (2, 0): ' ', (2, 1): ' ', (2, 2): 'W', (2, 3): ' ',
         (3, 0): 'O', (3, 1): ' ', (3, 2): ' ', (3, 3): ' ',
     }
-    direcoes = {'N': (-1, 0), 'S': (1, 0), 'L': (0, 1), 'O': (0, -1),
-                # 'NO':(-1, -1), 'NE':(-1, 1), 'SO':(1, -1), 'SE':(1, 1)
+    direcoes = {
+        'N': (-1, 0), 'S': (1, 0), 'L': (0, 1), 'O': (0, -1),
+        # 'NO':(-1, -1), 'NE':(-1, 1), 'SO':(1, -1), 'SE':(1, 1)
     }
 
     print(a_star((0, 0), (3, 0), mapa, ['P', 'W'], direcoes))

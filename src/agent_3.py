@@ -9,12 +9,12 @@ from collections import Counter
 
 class Agent3(Agent):
     def __init__(
-        self, 
-        id_:int,
+        self,
+        id_: int,
         position,
-        directions: dict[str, tuple[int, int]], 
-        map_:dict[tuple[int, int], str],
-        agent_schemas:ThirdAgentSchemas
+        directions: dict[str, tuple[int, int]],
+        map_: dict[tuple[int, int], str],
+        agent_schemas: ThirdAgentSchemas
     ):
         super().__init__(id_, position)
         self.type = 3
@@ -34,17 +34,21 @@ class Agent3(Agent):
             gene_size = random.randint(2, max_size)
 
             actions = random.choices(directions, k=gene_size)
-            chromosome = [a.lower() if random.random() < 0.1 else a for a in actions]
-            
+            chromosome = [
+                a.lower() 
+                if random.random() < 0.1 else a 
+                for a in actions
+            ]
+
             genes.append({
                 'chromosome': chromosome,
                 'result': [],
                 'pts': 0,
             })
-        
+
         return genes
- 
-    def evaluate_gene(self, gene:dict):
+
+    def evaluate_gene(self, gene: dict):
         position = (self.start_position[0], self.start_position[1])
         map_temp = self.map.copy()
         result = []
@@ -61,7 +65,8 @@ class Agent3(Agent):
                 elif 'W' in map_temp[shot_position]:
                     result.append('T')
                     kills += 1
-                    map_temp[shot_position] = map_temp[shot_position].replace('W', '')
+                    map_temp[shot_position] = map_temp[shot_position] \
+                        .replace('W', '')
                 else:
                     result.append('t')
                 continue
@@ -69,17 +74,17 @@ class Agent3(Agent):
                 position[0] + self.directions[chromosome][0],
                 position[1] + self.directions[chromosome][1],
             )
-            
+
             if position not in map_temp:
                 result.append('#')
                 continue
-        
+
             elif (gold_colected > 0 and position == self.start_position) or \
-            (kills > 0 and position == self.start_position):
+                    (kills > 0 and position == self.start_position):
                 result.append('V')
                 gold_colected = 0
                 continue
-            
+
             if 'P' in map_temp[position]:
                 result.append('P')
             elif 'W' in map_temp[position]:
@@ -88,14 +93,14 @@ class Agent3(Agent):
                 result.append('O')
             else:
                 result.append(map_temp[position])
-            
+
             if 'O' in map_temp[position]:
                 gold_colected += 1
                 map_temp[position] = map_temp[position].replace('O', '')
-            
+
         gene['result'] = result
 
-    def fitness(self, gene:dict) -> int:
+    def fitness(self, gene: dict) -> int:
         count = dict(Counter(gene['result']))
         values = {
             'PV': count.get('', 0),
@@ -109,18 +114,18 @@ class Agent3(Agent):
             'T': len(count),
         }
         fitness_function = compile(self.fitness_expression)
-        
+
         gene['pts'] = fitness_function(values)
 
-    def intersection(self, max_size:int, gene_a:dict, gene_b:dict):
+    def intersection(self, max_size: int, gene_a: dict, gene_b: dict):
         directions = list(self.directions.keys())
-        
+
         cut_a = random.randint(1, (len(gene_a['chromosome']) - 1))
         cut_b = random.randint(1, (len(gene_b['chromosome']) - 1))
 
         gene = gene_a['chromosome'][:cut_a]
         gene.extend(gene_b['chromosome'][cut_b:])
-        
+
         while (max_size < len(gene)) or (len(gene) < 2):
             cut_a = random.randint(0, (len(gene_a) - 1))
             cut_b = random.randint(0, (len(gene_b) - 1))
@@ -135,7 +140,7 @@ class Agent3(Agent):
         for i in range(len(new_gene['chromosome'])):
             if random.random() < self.mutation_rate:
                 new_gene['chromosome'][i] = random.choice(directions)
-        
+
         return new_gene
 
     def evolution(self):
@@ -144,9 +149,9 @@ class Agent3(Agent):
         for g in genes:
             self.evaluate_gene(g)
             self.fitness(g)
-        
+
         genes.sort(key=lambda g: g['pts'], reverse=True)
-        
+
         son_1 = self.intersection(
             int(len(self.map)*2),
             genes[0],
@@ -163,11 +168,19 @@ class Agent3(Agent):
         self.evaluate_gene(son_2)
         self.fitness(son_2)
         genes.append(son_2)
-        
+
         for generation in range(self.generations):
-            number_of_crossings = max(1, int(self.population*self.crossing_rate))
-            number_of_crossings = number_of_crossings if number_of_crossings % 2 == 0 else number_of_crossings + 1
-            
+            number_of_crossings = max(
+                1, 
+                int(
+                    self.population * 
+                    self.crossing_rate
+                )
+            )
+            number_of_crossings = number_of_crossings \
+                if number_of_crossings % 2 == 0 \
+                else number_of_crossings + 1
+
             for i in range(2, number_of_crossings):
                 try:
                     gene_1 = genes[i % 2]
@@ -192,28 +205,35 @@ class Agent3(Agent):
                 genes.append(son_2)
 
             if generation == (self.generations - 1):
-                print(f'Processamento: {(generation/self.generations*100):.2f}%, Geração: {generation}, População: {len(genes)}')
+                print(
+                    f'Processamento: {(generation/self.generations*100):.2f}%,'
+                    f' Geração: {generation},'
+                    f' População: {len(genes)}'
+                )
             else:
-                print(f'Processamento: {(generation/self.generations*100):.2f}%, Geração: {generation}, População: {len(genes)}', end='\r')
-            
+                print(
+                    f'Processamento: {(generation/self.generations*100):.2f}%,'
+                    f' Geração: {generation},'
+                    f' População: {len(genes)}',
+                    end='\r'
+                )
+
             genes.sort(key=lambda g: g['pts'], reverse=True)
             genes = genes[:self.population]
-            
+
         return genes[0]
-    
+
     def execute(self, data_position):
         if not self.action_queue:
             chromosome = self.evolution()
             for c in range(len(chromosome['chromosome'])):
                 self.action_queue.append(chromosome['chromosome'][c])
-                
+
                 if 'O' in chromosome['result'][c]:
                     self.action_queue.append('x')
-                
-                
-        
+
         action = self.action_queue.pop(0)
-        
+
         if not self.action_queue:
             self.game_over = True
 

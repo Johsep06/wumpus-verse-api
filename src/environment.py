@@ -14,8 +14,10 @@ class Environment:
         self.id = id_
         self.rooms: dict[tuple[int, int], Room] = {}
         self.entities_positions = {'W': [], 'P': [], 'O': []}
-        self.directions = {'N': (-1, 0), 'S': (1, 0),
-                           'L': (0, 1), 'O': (0, -1)}
+        self.directions = {
+            'N': (-1, 0), 'S': (1, 0),
+            'L': (0, 1), 'O': (0, -1)
+        }
         self.step_histor: list[TurnSchemas] = []
         self.agent_queue: list[Agent] = []
 
@@ -101,8 +103,10 @@ class Environment:
         for x, y in list(self.directions.values()):
             if (position[0] + x, position[1] + y) not in self.rooms:
                 continue
-            self.rooms[(position[0] + x, position[1] + y)
-                       ].add_perception(perception)
+            self.rooms[(
+                position[0] + x,
+                position[1] + y
+            )].add_perception(perception)
 
     def get_directions(self, agent: Agent) -> list[str]:
         pos_x, pos_y = agent.position
@@ -133,8 +137,6 @@ class Environment:
         return ','.join(self.rooms[new_agent_position].entities)
 
     def get_perception(self, agent: Agent):
-        # agent_position = self.agents[agent_id]
-
         return self.rooms[agent.position].perceptions
 
     def get_agent_position_data(self, agent: Agent):
@@ -148,32 +150,34 @@ class Environment:
             'objects': self.rooms[agent.position].entities
         }
 
-    def agent_shot(self, agent:Agent, direction:str):
+    def agent_shot(self, agent: Agent, direction: str):
         shot_position = (
             agent.position[0] + self.directions[direction][0],
             agent.position[1] + self.directions[direction][1],
         )
-        
+
         if shot_position not in self.rooms:
             return None
-        
+
         dead_wumpus = False
         if 'W' in self.rooms[shot_position].entities:
             self.rooms[shot_position].hide_entity('W')
             dead_wumpus = True
-        
+
         return dead_wumpus
 
     def get_map(self):
-        map_:dict[tuple[int, int], str] = {}
-        
+        map_: dict[tuple[int, int], str] = {}
+
         for position in self.rooms:
-            map_.setdefault((position[0], position[1]), ','.join(self.rooms[position].entities))
+            map_.setdefault(
+                (position[0], position[1]),
+                ','.join(self.rooms[position].entities)
+            )
 
         return map_
 
     def agent_action(self, agent: Agent, action: str):
-        position = agent.position
         result = None
 
         if action == 'x':
@@ -183,7 +187,7 @@ class Environment:
                 result = 'x'
         elif action in self.directions:
             result = self.move_agent(agent, action)
-            
+
         elif action.islower():
             result = self.agent_shot(agent, action.upper())
 
@@ -192,24 +196,10 @@ class Environment:
         if result is None:
             return ''
 
-        # self.step_histor.append(TurnSchemas(
-        #     agente=agent.tag,
-        #     posicao_x=position[0],
-        #     posicao_y=position[1],
-        #     acao=action,
-        # ))
-
         return result
 
     def execution(self) -> list[TurnSchemas]:
         step_histor: list[TurnSchemas] = []
-        # step_histor.append(TurnSchemas(
-        #         agente=agent.tag,
-        #         posicao_x=agent.position[0],
-        #         posicao_y=agent.position[1],
-        #         acao='',
-        #         pontos=agent.pts,
-        #     ))
 
         for agent in self.agent_queue:
             step_histor.append(TurnSchemas(
@@ -222,14 +212,13 @@ class Environment:
             ))
 
         while True:
-        # for _ in range(10):
             for agent in self.agent_queue:
                 position_data = self.get_agent_position_data(agent)
                 choice = agent.execute(position_data)
                 agent_status = self.agent_action(agent, choice)
                 agent.status = agent_status
                 agent.update_pts()
-                
+
                 if ((choice.islower())) and (choice.upper() in self.directions):
                     shot_position = (
                         agent.position[0] + self.directions[choice.upper()][0],
@@ -237,7 +226,7 @@ class Environment:
                     )
                 else:
                     shot_position = (-1, -1)
-                
+
                 step_histor.append(TurnSchemas(
                     agente=agent.id,
                     posicao_x=agent.position[0],
@@ -251,7 +240,7 @@ class Environment:
                 ))
                 if agent.game_over:
                     self.agent_queue.remove(agent)
-                # print(agent.position, agent.game_over, agent.gold, agent_status)
-            if self.agent_queue == []: break
-        
+            if self.agent_queue == []:
+                break
+
         return step_histor
