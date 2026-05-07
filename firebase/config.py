@@ -15,6 +15,9 @@ def initialize_firebase():
         print(f"Erro ao inicializar Firebase: {e}")
         raise
 
+def is_email_verified(uid: str) -> bool:
+    user = firebase_auth.get_user(uid)
+    return user.email_verified
 
 firebase_auth, firestore_db = initialize_firebase()
 db = firestore_db.client()
