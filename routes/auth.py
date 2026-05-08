@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 
 from firebase import firebase_auth
+import firebase
+import emails
 from schemas import UserCreateSchemas, TokenSchemas, UserLoginSchemas, UserSchemas
 from main import FIREBASE_API_KEY
 from dependencies import get_session, check_token
@@ -100,9 +102,11 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
     try:
         print(f"📝 Tentativa de registro para: {user_data.email}")
 
-        user = session.query(User).filter(User.usuario == user_data.name)
+        user = session.query(User) \
+            .filter(User.usuario == user_data.name) \
+            .first()
 
-        if user is None:
+        if user is not  None:
             raise HTTPException(
                 status_code=409,
                 detail=f"Já existe um usuário com o nome {user_data.name}"
@@ -116,17 +120,6 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
         )
 
         print(f"✅ Usuário criado no Auth: {user.uid}")
-
-        # 2. Salvar dados adicionais no Firestore (APÓS ATIVAR A API)
-        user_profile = {
-            'uid': user.uid,
-            'email': user_data.email,
-            'name': user_data.name,
-            'created_at': datetime.now(),
-            'updated_at': datetime.now(),
-            'email_verified': False,
-            'role': 'user'
-        }
 
         new_user = User(email=user_data.email, usuario=user_data.name)
         session.add(new_user)
@@ -142,6 +135,9 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
             email=user_data.email,
             name=user_data.name
         )
+
+        link = firebase.generate_verification_link(user_data.email)
+        emails.send_verification_email(user_data.name, user_data.email, link)
 
         print(f"🎉 Registro concluído para: {user_data.email}")
         return token_response
