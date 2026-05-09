@@ -24,15 +24,17 @@ def send_verification_email(user_name: str, user_email: str, verification_link: 
 
 
 def send_reset_email(user_name: str, user_email: str, reset_link: str):
-    send_email(
+    status = send_email(
         to_email=user_email,
-        subject='Complete seu cadastro - Verifique seu e-mail no Wumpus Verse',
-        body=verification_text.format(
+        subject='Solicitação para mudança de senha na plataforma Wumpus Verse',
+        body=reset_text.format(
                 name=user_name,
-                reset_link=reset_link
+                link=reset_link
         ),
         **SMTP_CONFIG,
     )
+    
+    return status
 
 
 __all__ = [
@@ -72,7 +74,7 @@ Recebemos uma solicitação para redefinir sua senha no Wumpus Verse.
 
 Clique no link abaixo para criar uma nova senha (válido por 1 hora):
 
-{reset_link}
+{link}
 
 Se você não solicitou, ignore este e‑mail. Sua senha permanecerá a mesma.
 
