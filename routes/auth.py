@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from firebase import firebase_auth
 import firebase
 import emails
-from schemas import UserCreateSchemas, TokenSchemas, UserLoginSchemas, UserSchemas
+from schemas import UserCreateSchemas, TokenSchemas, UserLoginSchemas, UserSchemas, UserEmailSchemas
 from main import FIREBASE_API_KEY
 from dependencies import get_session, check_token
 from models import User
@@ -186,9 +186,9 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
 
 
 @auth_router.get("/resend-verification-link")
-async def resend_verification_link(email: str, session: Session = Depends(get_session)):
+async def resend_verification_link(user_email_schemas: UserEmailSchemas, session: Session = Depends(get_session)):
     user = session.query(User) \
-        .filter(User.email == email) \
+        .filter(User.email == user_email_schemas.email) \
         .first()
 
     if not user:
@@ -198,7 +198,7 @@ async def resend_verification_link(email: str, session: Session = Depends(get_se
         )
 
     try:
-        firebase_user = firebase_auth.get_user_by_email(email)
+        firebase_user = firebase_auth.get_user_by_email(user_email_schemas.email)
     except firebase_auth.UserNotFoundError:
         raise HTTPException(404, "Usuário não encontrado no Firebase")
 
@@ -206,8 +206,8 @@ async def resend_verification_link(email: str, session: Session = Depends(get_se
         raise HTTPException(400, "E-mail já verificado")
 
     try:
-        link = firebase.generate_verification_link(email)
-        emails.send_verification_email(user.usuario, email, link)
+        link = firebase.generate_verification_link(user_email_schemas.email)
+        emails.send_verification_email(user.usuario, user_email_schemas.email, link)
     except Exception as e:
         raise HTTPException(500, f"Erro ao enviar e-mail: {e}")
 
