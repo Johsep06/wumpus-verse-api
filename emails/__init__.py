@@ -22,6 +22,19 @@ def send_verification_email(user_name: str, user_email: str, verification_link: 
         **SMTP_CONFIG,
     )
 
+
+def send_reset_email(user_name: str, user_email: str, reset_link: str):
+    send_email(
+        to_email=user_email,
+        subject='Complete seu cadastro - Verifique seu e-mail no Wumpus Verse',
+        body=verification_text.format(
+                name=user_name,
+                reset_link=reset_link
+        ),
+        **SMTP_CONFIG,
+    )
+
+
 __all__ = [
     'send_email',
     'SMTP_CONFIG',
@@ -52,3 +65,16 @@ Agradecemos por fazer parte do Wumpus Verse!
 
 — Equipe Wumpus Verse
 Mensagem automática. Não responda este e–mail.'''
+
+reset_text = """Olá {name},
+
+Recebemos uma solicitação para redefinir sua senha no Wumpus Verse.
+
+Clique no link abaixo para criar uma nova senha (válido por 1 hora):
+
+{reset_link}
+
+Se você não solicitou, ignore este e‑mail. Sua senha permanecerá a mesma.
+
+— Equipe Wumpus Verse
+"""
