@@ -19,6 +19,13 @@ def check_token(token=Depends(oauth2_schema), session: Session = Depends(get_ses
     """
     try:
         decoded_token = firebase_auth.verify_id_token(token)
+
+        if not decoded_token.get('email_verified', False):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="E-mail não verificado. Acesse sua caixa de entrada e clique no link de verificação."
+            )
+
         user_id = decoded_token['uid']
         email = decoded_token['email']
 
