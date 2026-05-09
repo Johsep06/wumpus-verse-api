@@ -198,7 +198,10 @@ async def resend_verification_link(user_email_schemas: UserEmailSchemas, session
         )
 
     try:
-        firebase_user = firebase_auth.get_user_by_email(user_email_schemas.email)
+        firebase_user = firebase_auth \
+            .get_user_by_email(
+                user_email_schemas.email
+            )
     except firebase_auth.UserNotFoundError:
         raise HTTPException(404, "Usuário não encontrado no Firebase")
 
@@ -207,7 +210,11 @@ async def resend_verification_link(user_email_schemas: UserEmailSchemas, session
 
     try:
         link = firebase.generate_verification_link(user_email_schemas.email)
-        emails.send_verification_email(user.usuario, user_email_schemas.email, link)
+        emails.send_verification_email(
+            user.usuario,
+            user_email_schemas.email,
+            link
+        )
     except Exception as e:
         raise HTTPException(500, f"Erro ao enviar e-mail: {e}")
 
@@ -233,6 +240,12 @@ async def login(login_data: UserLoginSchemas, session: Session = Depends(get_ses
             .filter(User.email == login_data.email) \
             .first()
 
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Usuário não encontrado"
+            )
+
         token_response = format_token_response(
             id_token=firebase_id_token,
             email=login_data.email,
@@ -250,6 +263,39 @@ async def login(login_data: UserLoginSchemas, session: Session = Depends(get_ses
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro interno no servidor. Tente novamente."
         )
+
+
+@auth_router.put('/user')
+async def update_name(
+        new_user_name: str,
+        session: Session = Depends(get_session),
+        token: UserSchemas = Depends(check_token)
+    ):
+
+    user = session.query(User) \
+        .filter(User.email == token.email) \
+        .first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado"
+        )
+
+    existing = session.query(User).filter(
+        User.usuario == new_user_name,
+        User.id != user.id
+    ).first()
+    if existing:
+        raise HTTPException(409, "Nome de usuário já está em uso")
+
+    user.usuario = new_user_name
+    session.commit()
+
+    return {
+        'status_code': 200,
+        'detail': 'Nome de usuário atualizado com sucesso'
+    }
 
 
 @auth_router.delete('/user')
