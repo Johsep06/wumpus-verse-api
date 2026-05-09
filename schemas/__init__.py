@@ -19,6 +19,7 @@ from .third_agent import ThirdAgentSchemas
 from .second_agent import SecondAgentSchemas
 from .execution_db import ExecutionDBSchemas
 from .agent import AgentSchemas
+from .user_email import UserEmailSchemas
 
 __all__ = [
     'EnvironmentSchemas',
@@ -42,4 +43,5 @@ __all__ = [
     'ThirdAgentSchemas',
     'SecondAgentSchemas',
     'ExecutionDBSchemas',
+    'UserEmailSchemas',
 ]
