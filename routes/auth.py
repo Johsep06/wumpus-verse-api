@@ -267,10 +267,10 @@ async def login(login_data: UserLoginSchemas, session: Session = Depends(get_ses
 
 @auth_router.put('/user')
 async def update_name(
-        new_user_name: str,
-        session: Session = Depends(get_session),
-        token: UserSchemas = Depends(check_token)
-    ):
+    new_user_name: str,
+    session: Session = Depends(get_session),
+    token: UserSchemas = Depends(check_token)
+):
 
     user = session.query(User) \
         .filter(User.email == token.email) \
@@ -296,6 +296,49 @@ async def update_name(
         'status_code': 200,
         'detail': 'Nome de usuário atualizado com sucesso'
     }
+
+
+@auth_router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(user_email_schemas: UserEmailSchemas, session: Session = Depends(get_session)):
+    """
+    Solicita redefinição de senha.
+    Envia um link de redefinição para o e‑mail informado.
+    """
+    email = user_email_schemas.email
+
+    try:
+        user = firebase_auth.get_user_by_email(email)
+    except firebase_auth.UserNotFoundError:
+        return {"detail": "Se o e-mail estiver cadastrado, você receberá um link de redefinição."}
+
+    user = session.query(User) \
+        .filter(User.email == email) \
+        .first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado"
+        )
+
+    try:
+        reset_link = firebase_auth.generate_password_reset_link(email)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao gerar link de redefinição"
+        )
+
+    sent = emails.send_reset_email(user.usuario, email, reset_link)
+
+    if not sent:
+        print(f"Falha no envio do e-mail para {email}")
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao enviar e-mail. Tente novamente mais tarde."
+        )
+
+    return {"detail": "Link de redefinição enviado para o e-mail cadastrado."}
 
 
 @auth_router.delete('/user')
