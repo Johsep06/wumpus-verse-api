@@ -106,7 +106,7 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
             .filter(User.usuario == user_data.name) \
             .first()
 
-        if user is not  None:
+        if user is not None:
             raise HTTPException(
                 status_code=409,
                 detail=f"Já existe um usuário com o nome {user_data.name}"
@@ -183,6 +183,38 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro interno no servidor. Tente novamente."
         )
+
+
+@auth_router.get("/resend-verification-link")
+async def resend_verification_link(email: str, session: Session = Depends(get_session)):
+    user = session.query(User) \
+        .filter(User.email == email) \
+        .first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado"
+        )
+
+    try:
+        firebase_user = firebase_auth.get_user_by_email(email)
+    except firebase_auth.UserNotFoundError:
+        raise HTTPException(404, "Usuário não encontrado no Firebase")
+
+    if firebase_user.email_verified:
+        raise HTTPException(400, "E-mail já verificado")
+
+    try:
+        link = firebase.generate_verification_link(email)
+        emails.send_verification_email(user.usuario, email, link)
+    except Exception as e:
+        raise HTTPException(500, f"Erro ao enviar e-mail: {e}")
+
+    return {
+        'status_code': 200,
+        'detail': 'Link de verificação reenviado com sucesso '
+    }
 
 
 @auth_router.post("/login", response_model=TokenSchemas)
