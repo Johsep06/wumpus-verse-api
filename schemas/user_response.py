@@ -6,3 +6,4 @@ class UserResponseSchemas(BaseModel):
     email: str
     name: str
     created_at: datetime
+    is_verified: bool
