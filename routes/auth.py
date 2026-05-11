@@ -8,8 +8,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from firebase import firebase_auth
 import firebase
+from firebase import is_email_verified
 import emails
-from schemas import UserCreateSchemas, TokenSchemas, UserLoginSchemas, UserSchemas, UserEmailSchemas
+from schemas import UserCreateSchemas, TokenSchemas, UserLoginSchemas, \
+    UserSchemas, UserEmailSchemas, UserResponseSchemas
 from main import FIREBASE_API_KEY
 from dependencies import get_session, check_token
 from models import User
@@ -17,15 +19,16 @@ from models import User
 auth_router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
-def format_token_response(email: str, name: str, id_token):
+def format_token_response(email: str, name: str, id_token:str, is_verified:bool):
     token_response = TokenSchemas(
         access_token=id_token,
         token_type="bearer",
-        user={
-            'email': email,
-            'name': name,
-            'created_at': datetime.now(),
-        }
+        user=UserResponseSchemas(
+            email=email,
+            name=name,
+            created_at=datetime.now(),
+            is_verified=is_verified
+        )
     )
 
     return token_response
@@ -133,7 +136,8 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
         token_response = format_token_response(
             id_token=id_token,
             email=user_data.email,
-            name=user_data.name
+            name=user_data.name,
+            is_verified=is_email_verified(user.uid)
         )
 
         link = firebase.generate_verification_link(user_data.email)
@@ -249,7 +253,8 @@ async def login(login_data: UserLoginSchemas, session: Session = Depends(get_ses
         token_response = format_token_response(
             id_token=firebase_id_token,
             email=login_data.email,
-            name=user.usuario
+            name=user.usuario,
+            is_verified=is_email_verified(firebase_uid)
         )
 
         print(f"🎉 Login concluído para: {login_data.email}")
@@ -402,7 +407,8 @@ async def login_form(login_data: OAuth2PasswordRequestForm = Depends(), session:
         token_response = format_token_response(
             id_token=firebase_id_token,
             email=login_data.username,
-            name=user.usuario
+            name=user.usuario,
+            is_verified=is_email_verified(firebase_uid)
         )
 
         print(f"🎉 Login concluído para: {login_data.username}")
