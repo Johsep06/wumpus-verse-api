@@ -189,7 +189,7 @@ async def register(user_data: UserCreateSchemas, session: Session = Depends(get_
         )
 
 
-@auth_router.get("/resend-verification-link")
+@auth_router.post("/resend-verification-link")
 async def resend_verification_link(user_email_schemas: UserEmailSchemas, session: Session = Depends(get_session)):
     user = session.query(User) \
         .filter(User.email == user_email_schemas.email) \
